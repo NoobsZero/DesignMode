@@ -13,8 +13,11 @@
 
 import abc
 
-
 # 两种小汽车
+
+from abc import ABC
+
+
 class Mercedes_C63(object):
     """梅赛德斯 C63
     """
@@ -48,6 +51,23 @@ class BMW_X5(object):
         return "BMW: X5"
 
 
+# 　两种颜色
+class Colour_red(object):
+    """白色
+    """
+
+    def __repr__(self):
+        return "Colour: red"
+
+
+class Colour_black(object):
+    """黑色
+    """
+
+    def __repr__(self):
+        return "Colour: black"
+
+
 """
     抽象工厂
         工厂方法虽然解决了我们“修改代码”的问题，但如果我们要生产很多产品，就会发现我们同样需要写很多对应的工厂类。
@@ -57,8 +77,9 @@ class BMW_X5(object):
 
 
 class AbstractFactory(object):
-    """抽象工厂
-    可以生产小汽车外，还可以生产SUV
+    """抽象工厂类
+        用来定义工厂类的接口，在需要实现共通功能的时候定义即可，可以提高代码的复用性。
+        可以生产小汽车外，还可以生产SUV
     """
     __metaclass__ = abc.ABCMeta
 
@@ -70,8 +91,12 @@ class AbstractFactory(object):
     def product_suv(self):
         pass
 
+    @abc.abstractmethod
+    def product_colour(self):
+        pass
 
-class MercedesFactory(AbstractFactory):
+
+class MercedesFactory(AbstractFactory, ABC):
     """梅赛德斯工厂
     """
 
@@ -81,8 +106,11 @@ class MercedesFactory(AbstractFactory):
     def product_suv(self):
         return Mercedes_G63()
 
+    def product_colour(self):
+        return Colour_black()
 
-class BMWFactory(AbstractFactory):
+
+class BMWFactory(AbstractFactory, ABC):
     """宝马工厂
     """
 
@@ -102,9 +130,10 @@ class BMWFactory(AbstractFactory):
 def abstractFactory():
     c1 = MercedesFactory().product_car()
     s1 = MercedesFactory().product_suv()
+    b1 = MercedesFactory().product_colour()
     s2 = BMWFactory().product_suv()
     c2 = BMWFactory().product_car()
-    print('abstractFactory():\n\t{}\n\t{}'.format([c1, s1], [c2, s2]))
+    print('abstractFactory():\n\t{}\n\t{}'.format([c1, s1, b1], [c2, s2]))
 
 
 """
