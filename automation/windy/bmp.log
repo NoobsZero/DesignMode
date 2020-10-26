@@ -1,0 +1,7 @@
+[INFO  2020-10-26T19:45:13,609 net.lightbody.bmp.proxy.Main] (main) Starting BrowserMob Proxy version 2.1.4 
+[INFO  2020-10-26T19:45:14,061 org.eclipse.jetty.util.log] (main) jetty-7.x.y-SNAPSHOT 
+[INFO  2020-10-26T19:45:14,835 org.eclipse.jetty.util.log] (main) started o.e.j.s.ServletContextHandler{/,null} 
+[INFO  2020-10-26T19:45:16,122 org.eclipse.jetty.util.log] (main) Started SelectChannelConnector@0.0.0.0:8080 
+[INFO  2020-10-26T19:45:24,718 org.littleshoot.proxy.impl.DefaultHttpProxyServer] (qtp664186542-17) Starting proxy at address: 0.0.0.0/0.0.0.0:8081 
+[INFO  2020-10-26T19:45:25,243 org.littleshoot.proxy.impl.DefaultHttpProxyServer] (qtp664186542-17) Proxy listening with TCP transport 
+[INFO  2020-10-26T19:45:32,030 org.littleshoot.proxy.impl.DefaultHttpProxyServer] (qtp664186542-17) Proxy started at address: /0:0:0:0:0:0:0:0:8081 

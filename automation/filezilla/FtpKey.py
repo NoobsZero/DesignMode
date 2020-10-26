@@ -9,7 +9,12 @@ import time
 from pymouse import *
 from pykeyboard import PyKeyboard
 
+
 def MouseAndKeyboard():
+    """
+    失败任务重新加入下载队列
+    :return:
+    """
     ms = PyMouse()
     kb = PyKeyboard()
     # 鼠标移动到坐标(x,y)
@@ -17,7 +22,7 @@ def MouseAndKeyboard():
     ms.click(180, 1060, 1, 1)
     time.sleep(1)
     start = time.time()
-    while(True):
+    while True:
         end = time.time()
         if int((end - start)) >= 300:
             ms.click(70, 1000, 1, 1)
@@ -35,6 +40,7 @@ def MouseAndKeyboard():
         time.sleep(1)
         kb.tap_key('r')
         time.sleep(10)
+
 
 if __name__ == '__main__':
     MouseAndKeyboard()
