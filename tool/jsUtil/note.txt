@@ -1,0 +1,1163 @@
+JavaScript学习笔记
+
+80. js中()分组运算符的不求值特性
+
+    var GLOBAL_OBJECT = this;
+    GLOBAL_OBJECT.name = 'liyanshan';
+    var obj = {
+        name: 'liyanfeng',
+        say: function(){
+            alert(this.name);
+        }
+    }
+
+    console.log(GLOBAL_OBJECT);
+
+    (obj.say)(); // liyanfeng
+    (obj.say || 0)(); // liyanshan 强制求值，say才变成一个普通函数。
+
+
+
+79. 判断是否支持某个事件
+
+可看到，会有一定的误差，需要再次细化判断
+
+console.log('mousewheel:',isEventSupported("mousewheel")); // FF:false CH/OP/Sa/Edge:true IE:true
+console.log('wheel:',isEventSupported("wheel"));// FF:true CH/OP/Sa/Edge:true IE:false
+console.log('DOMMouseScroll:',isEventSupported("DOMMouseScroll"));// FF:false CH/OP/Sa/Edge:false IE:false
+
+console.log('mousewheel:',isEventSupported("mousewheel", document)); // FF:true CH/OP/Sa/Edge:true IE:true
+console.log('wheel:',isEventSupported("wheel", document));//FF:true CH/OP/Sa/Edge:true IE:false
+console.log('DOMMouseScroll:',isEventSupported("DOMMouseScroll", document));//FF:false CH/OP/Sa/Edge:false IE:false
+
+var isEventSupported = (function() {
+  var TAGNAMES = {
+    'select': 'input',
+    'change': 'input',
+    'submit': 'form',
+    'reset': 'form',
+    'error': 'img',
+    'load': 'img',
+    'abort': 'img'
+  };
+  // function isEventSupported( eventName, element ) {
+  return function( eventName, element ) {
+    // 创而不插
+    element = element || document.createElement(TAGNAMES[eventName] || 'div');
+    eventName = 'on' + eventName;
+    var isSupported = eventName in element;
+    if ( !isSupported ) {
+      if ( !element.setAttribute ) {
+        element = document.createElement('div');
+      }
+      if ( element.setAttribute && element.removeAttribute ) {
+        element.setAttribute(eventName, '');
+        isSupported = is(element[eventName], 'function');
+
+        if ( !is(element[eventName], 'undefined') ) {
+          element[eventName] = undefined;
+        }
+        element.removeAttribute(eventName);
+      }
+    }
+
+    element = null;
+    return isSupported;
+  }
+  // return isEventSupported;
+})();
+
+
+
+78. 原始值数组快速去重
+
+var arr = [1,1,1,3,4,5,7,1,3,6,2,4,7,32,2,5,1,33,6,8];
+
+arr = Array.from(new Set(arr)); // [1, 3, 4, 5, 7, 6, 2, 32, 33, 8]
+
+
+77. 对于货币格式，比如 123456 转成 123,456
+
+可以使用 Number(123456).toLocaleString(); // 123,456
+
+兼容性问题：IE9-返回 123,456.000
+            safari 原样返回
+            IE10/11/Edge/Chrome/Firefox/Opera 完美返回123,456
+
+
+76. 前端编码规范。以后有其他前端同学进来，就需要了
+
+http://codecloud.net/5622.html
+
+75.
+
+PNG小图标可以改颜色啦！！！
+
+http://www.zhangxinxu.com/wordpress/2016/06/png-icon-change-color-by-css/
+
+74.
+
+angular中的filter服务
+
+jfApp.controller('mallGiftCtrl',function($scope,$filter){
+
+   var dateFormater = $filter('date');
+   var pattern = "yyyy-MM-dd HH:mm:ss"
+
+   var timeStr = dateFormater(new Date(),pattern);
+
+})
+
+
+73.
+
+在做开发时，写css3属性时，不要忘记写-webkit-前缀
+
+做积分商城时就发现了一个bug，在IOS8.x中，弹窗没有居中
+
+由
+
+transform: translateX(-50%);
+
+改为
+
+-webkit-transform: translateX(-50%);
+-moz-transform: translateX(-50%);
+-ms-transform: translateX(-50%);
+transform: translateX(-50%);
+
+即可
+
+72.
+
+a. node.insertBefore(arg1,arg2) //insert第一个，before第二个
+
+   如果第一个参数已经存在于node中，那么该方法执行完毕之后，node下面并不会有2个arg1元素，相当于dom树从新排序成了arg1在arg2前面的新树。这正是我想要的。
+
+b. node.appendChild(arg)
+
+   如果arg已经存在于node下，执行完该方法，在node下并不会有2个arg元素，相当于dom树从新排序成了arg为最后一个元素的新树。
+
+
+71.
+
+ js代码不写分号坑
+
+ var conf = {
+
+    hash:{
+
+      limit:"#limit",
+      coupon:"#coupom"
+
+    }
+
+ } // 这儿少一个分号
+
+
+ (function(){
+
+   // doing something
+
+ })()
+
+
+会报错 Uncaught TypeError: (intermediate value) is not a function
+
+
+70.
+
+angular “Duplicates in a repeater are not allowed“
+
+报错原因是：angular在使用repeat directive时，如果数组里有相同的值，就报这个错误。
+
+触发这个错误：<div ng-repeat="row in [1,1,1]">
+
+解决方案：a.要么数组去重
+          b.要么 <div ng-repeat="row in [1,1,1] track by $index">
+
+
+69.
+
+资源引用前面不加协议
+
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-wip/css/bootstrap.min.css">
+
+浏览器会为这个 URL 使用当前页面所使用的 HTTP/HTTPS 协议（主要是为了防止 HTTPS 页面加载 HTTP 资源，因为这种方式不安全）。
+这种引用资源的方式常用于使用了公共 CDN 的 JS/CSS 资源。
+
+这也就是说，在本地以文件协议打开网页的话，如果没有协议，浏览器会取当前页面所用的协议加上去，也就是file协议，所以会404
+
+解决办法就是在本地起一个服务器，在服务器中打开网页就不会有这个问题了。。。
+
+---------------------------------------------------
+
+这种策略可以放心使用！！！
+
+这是 Google 代码风格指导里的规定：省略嵌入资源的协议：
+
+Omit the protocol from embedded resources.
+
+Omit the protocol portion (http:, https:) from URLs pointing to images and other media files, style sheets, and scripts unless the respective files are not available over both protocols.
+
+Omitting the protocol—which makes the URL relative—prevents mixed content issues and results in minor file size savings.
+
+知乎关于此问题的链接：https://www.zhihu.com/question/21668924
+谷歌的规定：https://google.github.io/styleguide/htmlcssguide.xml#Protocol
+
+68.
+
+IE中children包括注释节点，这是新首页中遇到的bug，董旭在ie8中发现的
+
+67.
+
+使用test函数时，正则要慎用 g ，我就遇到了一个bug
+
+详见 http://my.oschina.net/ffwcn/blog/276949?fromerr=tCyOJ0zn
+
+66.
+
+可以通过 element.setSelectionRange 来设置input光标的位置
+
+65.
+
+var arr = [1,3,4]
+
+var a = arr.concat(1);// a = [1,3,4,1]
+
+var a = arr.concat(5,6,7,8) // a = [1,3,4,5,6,7,8]
+
+concat当参数是多个时和push一样，都是往数组中推入元素，但是它和push的区别也很明显：
+
+a.
+
+concat不改变原数组，返回过来的是一个新的数组，例如a
+
+push改变的是原数组，返回的是改变后的原数组的length。。
+
+b.
+
+concat可以把二维数组变成一维数组
+
+var arr = [1,2,3,[4,5]];
+
+var a = [].concat.apply([],[1,2,3,[4,5]]) // a = [1,2,3,4,5]
+
+
+64.
+
+
+<!--[if lte IE7]
+
+<style type="text/css">
+
+/*写只在IE6和IE7下起作用的样式*/
+
+.dd-ie6-mask{
+
+  ...
+
+}
+
+</style>
+
+
+
+<div class="dd-ie6-mask"></div>
+
+
+<![endif]-->
+
+
+63.
+
+字符串快速变数组：
+
+"abc".split(" ") ==> ["abc"]
+
+62.
+
+js中如何表示概率的概念？
+
+可以使用随机数来实现，比如概率为80%,
+
+Math.random() > 0.2
+
+上面这个等式有80%的概率是true
+
+概率50%
+
+Math.random() > 0.5
+
+
+
+61.
+
+ 取[a,b)之间的随机数
+
+ var random = Math.floor( Math.random()*a + Math.random()*( b - a ) );
+
+ 取[a,b]之间的随机数
+
+ var random = Math.ceil( Math.random()*a + Math.random()*( b - a ) );
+
+
+60.
+
+ JS属性选择器
+
+ var dom = document.querySelectorAll('.articlecard:not([data-sequence])') // 选取class为articlecard且没有data-sequence的元素
+
+ var dom2 = document.querySelectorAll('[type=button]'); // 选取所有type="button"的元素
+
+ var dom3 = document.querySelectorAll(':not([type=button])');; // 选取所有type不是button的元素
+
+ var dom4 =  document.querySelectorAll('[type$=text]'); // 选取type属性的值以text结尾的元素
+
+ var dom5 =  document.querySelectorAll('[type^=text]'); // 选取type属性的值以text开头的元素
+
+ var dom6 =  document.querySelectorAll('[type*=text]'); // 选取type属性中含有text的元素
+
+ var dom7 =  document.querySelectorAll('[type~=text]'); // 选取以type属性值含有text的元素。必须得是一个词。
+
+ var dom8 =  document.querySelectorAll('[type]'); // 选取所有含有属性值type的元素
+
+
+59.
+
+MutationEvent已经弃用，以后不要使用MutationEvent
+
+建议使用MutationObserver
+
+https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Mutation_events
+
+58.
+
+   今天（20160303）大叔问了我一个问题：如何让form提交给form所在页面本身？（该页面是一个模板文件，将会生成多种静态文件）
+
+   我并没有回答正确
+
+   晚上试了试，发现只要form中的action是空的，甚至不写action，那么提交时，就会默认提交给form所在页面
+
+   浏览器这样做是有道理且合乎逻辑的，因为当提交时，action属性并没有值（甚至没有action属性），但是总要提交到一个地址吧？
+
+   于是浏览器就把form提交给了当前页面本身。。
+
+
+
+
+57.
+
+   firefox css hack
+
+   @-moz-document url-prefix(){
+
+     /*
+       写只在firefox中起作用的css
+     */
+
+   }
+
+  --------------------------------------------
+
+  webkit内核css hack（chrome、safari、opera）很奇怪，在win10的edge下，竟然也起作用，莫非edge要向chrome看齐？
+
+  @media screen and (-webkit-min-device-pixel-ratio:0) {
+     .demo {
+       /*
+        这里写只在webkit内核的浏览器下起作用的样式
+       */
+     }
+  }
+
+
+  --------------------------------------------
+
+   IE css hack
+
+   @media screen\0 {
+
+      /*
+
+       这里写在IE 8 9 10 11下起作用的样式
+
+      */
+
+   }
+
+   ----------------------------------------
+
+   IE9/10 css  hack
+
+   /* name:value\9\0; */
+
+   display: none\9\0;
+
+   ----------------------------------------
+
+   IE8 css hack
+
+   .header{
+
+      /*
+
+        这里面写只有在IE8下起作用的样式和在所有浏览器下起作用的样式
+
+      */
+
+   }
+
+   @media \0screen\,screen\9 {
+   	.header{
+
+	   	/*
+
+	   	  这里面写除了IE8之外的浏览器使用的样式
+
+	   	*/
+
+   	}
+   }
+
+ ----------------------------------------
+
+ IE6 hack
+
+ /*
+
+   _name:value;
+   *name2:value2;
+
+ */
+
+ _display:none;
+ 或
+ *display:none;
+
+ ----------------------------------------
+
+ IE7（和傲游） hack
+
+  *display:none;
+
+ ----------------------------------------
+
+ IE6/7 hack
+
+ *display:none;
+
+
+
+56.
+
+   对于所有元素，可以使用getElementsByName来根据name获取元素，但是
+
+   对于非form元素，element.name 是不可读写的，想读写name属性，可以使用getAttribute和setAttribute方法
+
+   对于form元素，element.name 是可读写的
+
+
+55.
+
+   已知一个节点node，在其前面插入一个节点：
+
+   node.parentNode.insertBefore(newNode,node);
+
+
+54.
+   在一个Node下第一个位置插入节点：
+
+   node.insertBefore(newNode,node.childNodes[0]);
+
+53.
+   FireFox不支持innerText
+
+52.
+   Node.children在IE8下包含注释节点，要注意！！！
+
+51.设置fixed浮动，那么就是固定的，其位置不随滚动而改变。
+
+   例如页面有一个topbar是fixed的，当出现水平滚动条时，将会有一部分内容被隐藏起来。
+
+
+50.
+
+一个教训：在ajax中一定要写error回调，不然出错我都不知道哪儿的问题。。。
+
+20160202，瑞奇跟我说pc线上的正文页右侧的“大家都在看”卡片是双倍的。这就是ajax的问题，但是没有报错。。
+
+
+49.
+
+   移动端的window没有onblur事件(或者永远不会触发，whatever..)
+   我猜测可能是为了用户体验吧。如果我在移动端的window.oblur时间中alert(1)，那么用户将看到这个网页永远不能失去焦点
+
+48.
+
+   a标签是不可以嵌套的。
+   例如：
+   <a href="http://www.baidu.com">去往百度
+      <p>我是a标签下面的p标签</p>
+      <a href="http://sina.cn">去往新浪 </a>
+   </a>
+
+   不符合规范，浏览器（chrome、safari、firefox）会解析成下面这样：
+   <a href="http://www.baidu.com">去往百度
+      <p>我是a标签下面的p标签</p>
+   </a>
+   <a href="http://sina.cn">去往新浪 </a>
+
+   p标签也是不能嵌套的
+
+
+
+47.
+
+   几个元素嵌套在一起，如果width和height一致的话，点击这块区域，内嵌最深的元素是事件源对象。
+
+
+46.
+
+   使用forEach循环，回调中的return就是for循环的continue。。。使用forEach无法使用break。。。
+
+
+45.
+
+   不要循环给每个元素添加事件，而是要使用事件委托来添加事件。
+
+44.
+
+   .class1.class2 可以选出即含有class1又含有class2的元素
+
+43.
+
+   a && dosomething 最好不要用这种写法，发现使用grunt uglify 压缩完毕之后，执行时会报错。
+
+   报错信息：ReferenceError: Invalid left-hand side in assignment
+
+42.class是用来布局和显示样式的。不要使用class来做这和样式相关的任何事！
+
+   例如，标识一个元素是否更新了其innerHTML
+
+   使用<span data-load="unkonwn"></span>
+   比  <span class="unkonwn"></span>
+
+   好！！
+
+41.选择页面上不含有 data-sequence 属性的且class为articlecard的元素
+
+    document.querySelectorAll('.articlecard:not([data-sequence])')
+
+40.在页面创建一个元素，但是没有appendChild树中，能点击么？
+
+  function toPage(url){
+     var a = document.createElement('a');
+     a.href = url;
+     // document.body.appendChild(a);
+     a.click();
+   }
+
+   这个方法在chrome/safari下是没有问题的，但是在firefox下必须append到页面！！
+
+39.现有3个页面，a/b/c，a页面有一个链接跳转到b页面，b页面load之后使用location.href跳转到c页面。
+
+   此时history里不含b页面，也就是说，在c页面回退之后，直接到了a页面
+
+   但是，在b页面加一个定时器，3秒之后调到c页面，这时，history中就有了b页面。。好奇怪。。
+
+   难道说，在某个页面，使用location.href跳转的太快，会导致history不记录？？
+
+
+   -----------------------------------------------------------------------------------------
+    这是一个百度知道的回答，不知道是否解释了b快速跳转到c页面，history不记录的问题。
+
+    location.href是一个属性，要这样使用：
+    location.href='http://www.example.com'
+    而location.assign('http://www.example.com') 就是 location.href='http://www.example.com'
+    至于
+    location.replace('http://www.example.com')与前两者的区别是，在replace之后，浏览历史就被清空了（href与assign方法会产生历史记录）。
+
+    建议：使用replace。因为前两者会产生历史记录，而浏览者如果点‘后退’按钮，就会产生'redirection loop'，会被浏览器禁止。
+   -----------------------------------------------------------------------------------------
+
+38.在IOS webview/safari 和 mac safari 中cookie的key不能是汉字，这个大坑可坑死我了。。
+   在chrome/firefox中是没有问题的。
+
+   可以使用 encodeURIComponent(key) 来编码汉字！！
+
+37.页面有无 <!DOCTYPE html> 很重要！！可能引起js逻辑错误/js报错/布局混乱/不再支持某些css属性
+
+   举一个例子：
+   在调调，分类页的listView中，
+
+   计算可视区的高度
+
+   无 <!DOCTYPE html> document.documentElement.clientHeight = 页面高度(body被撑开的高度)，显然是错误的结果
+   有 <!DOCTYPE html> document.documentElement.clientHeight = 可视区高度。right!!
+
+
+36.最好使用自执行函数的地方
+
+     if( sub > 0){
+        /*
+          向下滚动，从屏幕下方进入可视区，算出索引
+        */
+        var index = Math.floor((newScrollTop + viewportHeight)/ gridHeight);
+        // 根据索引取出索引处的卡片
+        var grid = gridArray[index];
+        var newSequence = +grid.dataset.sequence;
+        if(newSequence != oldSequence && grid.dataset.loaded == undefined){
+          var begin = newSequence * LOAD_COUNT; // 截取开始位置
+          var end = (newSequence + 1) * LOAD_COUNT ; // 截取结束位置
+          doAjaxAndUpdateDOM(allarticles.slice(begin,end));
+        }
+      }else if( sub < 0 ){
+        var index = Math.floor(newScrollTop / gridHeight);
+        var grid = gridArray[index];
+        var newSequence = grid.dataset.sequence;
+        if(newSequence != oldSequence && grid.dataset.loaded == undefined){
+          var begin = newSequence * LOAD_COUNT; // 截取开始位置
+          var end = (newSequence + 1) * LOAD_COUNT ; // 截取结束位置
+          doAjaxAndUpdateDOM(allarticles.slice(begin,end));
+        }
+      }
+
+      可以看到 if 和 else 里的代码比较相似，可以提取出来
+
+      变成：
+
+      (function(sub){
+        var index,grid,newSequence,begin,end;
+        if(sub > 0){
+           index = Math.floor((newScrollTop + viewportHeight)/ gridHeight);
+        }else{
+           index = Math.floor(newScrollTop / gridHeight);
+        }
+        // 根据索引取出索引处的卡片
+        grid = gridArray[index];
+        newSequence = +grid.dataset.sequence;
+        if(newSequence != oldSequence && grid.dataset.loaded == undefined){
+          begin = newSequence * LOAD_COUNT; // 截取开始位置
+          end = (newSequence + 1) * LOAD_COUNT ; // 截取结束位置
+          doAjaxAndUpdateDOM(allarticles.slice(begin,end));
+        }
+      })(sub);
+
+      这种写法效果跟上一种完全一样，但是更优雅！！
+
+
+
+
+
+
+35.
+
+    CORS跨域
+    http://www.imooc.com/wenda/detail/303569
+
+    Access-Control-Request-Headers:
+    自定义的头部，所有用setRequestHeader方法设置的头部都将会以逗号隔开的形式包含在这个头中
+
+34.
+
+    <a class="test" href="javascript:alert(1);" onclick="alert(2);">展开</a>
+    <a class="test" href="http://www.baidu.com" onclick="alert(2);">展开</a>
+
+    第一个点击，弹出 2，再弹出1
+    第二个点击，弹出 2，再跳转
+
+    说明了 a 标签的 onclick 事件是发生在跳转之前的。
+
+    同时：href中如果出现this，指的是window，onclick中的this指的是当前a标签
+
+    测试浏览器：Safari、chrome、firefox、IE、Edge、360极速浏览器
+
+
+
+33. scroll事件的触发
+
+    pc:
+
+        chrome & safari  4px 触发一次（怪不得性能好）
+        firefox          1px 触发一次
+        IE               22-24px 触发一次（大部分是23px、少部分24px、极少数22px，触发的频率这么低，IE还这么慢。辣鸡）
+
+
+    移动端:
+
+        Android broswer&safari     1px 触发一次
+
+        IOS&Andorid调调webview     npx 触发一次 n是手撒开之前滚动的距离 也就是说scroll事件的发生晚于pc和移动浏览器。
+                                     所以就导致快速滑动屏幕，会导致scroll事件丢失很多。
+
+                                     中间会丢失很多次事件。但是第一次与最后一次绝不会丢失！！
+
+     所有浏览器和webview通过 document.body.scrollTop||document.documentElement.scrollTop 和 scrollTo(xpos,ypos) 跳转到指定位置
+     scroll事件只触发一次，触发的时机是：滚动到相应位置再触发！！
+
+
+32. 可以使用setInterval(doScroll,100) 来代替scroll事件
+
+31. 在移动浏览器上不会出问题不代表在webview下不会出问题，记住：同一台手机上的浏览器跟各个app之间的webview不是完全一致的
+    原因：
+       移动浏览器与webview的本身的差异
+       各个app更改了webview
+
+    例子：a、在iphone上的调调webview里有scroll事件丢失问题
+          b、在魅族qq上的webview里，跳转到scrollTop会黑屏一下
+          c、微信的webview里不支持打开app store
+
+30. 在github上做的笔记，可以改成md格式的，例如本文件，原来是node.txt改成node.md之后，就可以使用markdown了。。
+
+ 29. 微信内部的webview不能跳转到app store，微信给禁用了
+
+ 28. 移动端scroll事件丢失
+
+    在pc端一个页面快速滚动到页面底部（滚动距离为9200）大概执行42-50次scroll事件
+    在webview中，同样的距离，快速滚到到页面底部，执行的scroll事件次数为8-9次，丢失了很多次scroll事件！！！
+
+27. 不使用框架，node js  路由怎么返回html文件给 客户端渲染?
+
+    server.on('request',function(req,res){
+
+        var urlStr = url.parse(req.url);
+        switch(urlStr.pathname){
+
+            case '/' :
+            // 首页
+            sendData(htmlDir+'index.html',req,res);
+            break;
+
+            case '/user':
+            // 用户首页
+            sendData(htmlDir+'user.html',req,res);
+            break;
+
+            case '/login':
+            // 用户登录
+            sendData(htmlDir+'login.html',req,res);
+            break;
+
+        }
+
+    })
+
+    总结：就是写好一个html文件，然后sentData() 把文件路径传进去就可以了。
+
+26. 手机webview是一个节省资源的版本，不同于手机浏览器，手机webview和手机浏览器大概有20-30%的差异
+
+    最明显的是，在safari下，快速滚动页面，scroll事件不会丢失
+    但是在webview下，快速滚动页面，会导致中间可能有几个scroll事件没有被触发。
+    问题见于：调调分类listView
+
+25. 属性选择器
+
+    a、span[data-id="18399639900348"]{ // data-id属性的值等于18399639900348的span元素
+        color:red;
+       }
+
+    b、[data-id="18399639900348"]{ // 所有data-id属性的值等于18399639900348的元素
+        color:red;
+       }
+
+    c、span[data-id]{ // 包含data-id属性的span元素
+        color:red;
+       }
+24. python搭建http服务器
+
+    python -m SimpleHTTPServe 8088
+
+    一个简易的http服务器就搭建好了，在浏览器访问 http://localhost:8088 如果命令执行的目录下有index.html，自动打开
+
+    index.html 非常方便！！
+
+23. offsetLeft 和 offsetTop
+
+    相对于有定位（relative/absolute/fixed）的最近的祖先元素（直到找到body为止）的偏移（并不一定非是left 和 top的偏移）。
+
+22. em的计算规则：
+
+    1、自己有font-size的，em乘自己的font-size，比如 div {font-size:20px;width:10em;} 此时width为 20*10 = 200px
+    2、自己没有font-size的（其实也有，继承于父元素），比如 body {font-size:30px;} div{width:20em;}，此时width为30*20=600px
+
+    一个大例子：
+
+    <--html结构-->
+
+     <body>
+        <div class="d">
+            <div class="d2">d2</div>
+        </div>
+     </body>
+
+     <--css-->
+
+     <style>
+        body{
+            font-size: 20px;
+        }
+        .d{
+            /* 继承了body的20px的font-size，此时.d的font-size为20px，所以width为20*60=1200px */
+            width: 60em;
+            background: #333;
+            height: 200px;
+        }
+        .d2{
+          color:white;
+          line-height: 1;
+          /* 继承了.d的20px的font-size（.d继承自body），此时.d2的font-size为 20*2 = 40px */
+          font-size: 2em;
+          /* 经过上面的运算，font-size为40px，所以height为 40*3 = 120px */
+          height: 3em;
+        }
+      </style>
+
+      记住一个技巧：EM乘自己。
+
+21.
+    chrome下在父页面操作ifrmae时，必须得在服务器环境下，使用文件协议打开的页面是无法操作iframe的。报错信息：
+    Uncaught SecurityError: Failed to read the 'contentDocument' property from 'HTMLIFrameElement': Blocked a frame with origin "null" from accessing a frame with origin "null". Protocols, domains, and ports must match.
+
+     safari和firefox下用文件协议打开的页面可以操作iframe
+
+20.pushState 和 replaceState 不会导致hashchange事件触发；
+
+   调用pushState 和 replaceState方法并不会导致 onpopstate 事件触发，
+
+   该事件是在用户点击浏览器的“前进”、“后退”按钮在 ps 和 rs方法改变的history队列中的元素切换时才会触发。
+
+
+19.iframe里与父框架共享history。。
+
+   可以在iframe中验证history.length 与 父框架的history.length，他俩永远相等，
+
+   在iframe页中调用history的go、back、forward方法与在父框架页里调用是一样的，
+
+   而
+
+   window.location.hash 与 window.location.href
+
+   不与父框架共享
+
+   iframe里的_self链接还是在iframe里打开，而_blank链接则是新开一个浏览器tab。
+
+
+
+18.如果一个网页里有iframe，并且使用js来改变src的话，会改变这个页面的history
+
+   实验：
+
+   一个页面只有一个a标签，点击a标签时，改变页面中iframe中的src（http://www.baidu.com），
+
+   a.onclick = function(){
+
+       var ifr = document.getElementById('if');
+
+       ifr.src = "http://www.imooc.com"; // 改变src为慕课网
+
+   }
+
+   在a标签被点击之前，使用 history.length 发现 history 队列的长度为2 （一个空地址、一个当前地址本身）
+
+   点击之后，history.length = 3
+
+   说明了，页面中的iframe也会改变父框架的history
+
+   这也就导致了我不能使用iframe来模拟native app的页面左滑入场，因为要结合window.location.hash 和 onhashchange 来管理
+
+   前进和后退按钮，如果iframe也能改变history的话，会导致history会一次入队2个元素（一次是iframe引起的，一次是hash改变引起的）
+
+
+17.关于replaceChild
+
+   例如 div.replaceChild(em,span);
+
+   replaceChild函数有两个参数，
+   第一个参数是要替换的新元素（一般是使用createElement新建出来的元素）；
+        如果是已经存在于文档中的节点作为第一个参数，那么会先清空div，然后把这个em节点 剪切 到div下
+   第二个参数必须是div元素的已存在的子元素，即span元素已经存在于div下了否则报错，
+       报错信息：Uncaught DOMException: Failed to execute 'replaceChild' on 'Node': The node to be replaced is not a child                   of this node.
+
+16.关于history对象
+
+   地址     地址栏为空    #1     #2    #3    #4    #5
+   length       1          2      3     4     5     6
+
+   F5刷新页面、地址栏刷新(即光标放在地址栏，然后回车)、history.reload()刷新不会改变history
+   手动在地址栏修改hash、window.location.hash、location.href修改hash，不管修改后的地址是否存在history，都会改变history，方式    是往后append
+
+   window.location.reload() // 相当于F5刷新
+   window.location.replace() // 替换history队列最后一个元素的值。history.length 并不变
+
+15.DOM对象不可序列化
+
+14.喜讯、喜讯，产房传喜讯
+
+   发现了深拷贝Object和Array对象的方法啦。。
+
+   function deepCopy(obj){
+
+     return JSON.parse(JSON.stringify(obj));
+
+   }
+
+   首先，把一个对象转成json格式字符串
+   JSON.stringify(obj)
+   接着，parse这个字符串，原样返回一个深层复制的对象拷贝
+   JSON.parse(JSON.stringify(obj))
+
+   这种方法太棒了，简单，高效！！唯一的不足就是兼容性，在IE67下并没有JSON对象。。但是！！这么老的浏览器考虑它干嘛。。。
+
+   什么递归深拷贝，$.extends()都是浮云！！
+
+
+13.发现了函数的第二种调用方式
+   例如
+
+   var obj = {
+    say:function(data){
+      console.log('say '+data);
+    }
+   }
+
+   (obj.say)('李彦峰'); // 李彦峰
+
+
+   function test(){
+     alert('test');
+   }
+
+   (test)(); // test
+
+
+   在jquery中的应用：
+   globalEval: function( data ) {
+        if ( data && jQuery.trim( data ) ) {
+            // We use execScript on Internet Explorer
+            // We use an anonymous function so that context is window
+            // rather than jQuery in Firefox
+            ( window.execScript || function( data ) {
+                window[ "eval" ].call( window, data );
+            } )( data );
+        }
+    }
+
+
+
+12.jquery判断是否是数字isNumeric
+
+   return  !jQuery.isArray( obj ) && (obj - parseFloat( obj ) + 1) >= 0;
+
+   对于 var num = new Number(123);
+        var str = new String('123');
+      都返回true
+
+      原理是 在parseFloat时，参数会调用toString方法
+             num.toString() -> '123'
+             str.toString() -> '123'
+
+       数组[1,2].toString() -> '1,2' 然后parseFloat -> 1
+
+       所以不能是数组。。
+
+       如果传入的数字是NaN,应该返回false， 肿么办？
+
+       NaN - NaN = NaN
+       NaN - 1 = NaN
+       NaN >= 0  = false
+
+       obj - parseFloat(obj) + 1 是为了防止parseFloa损失精度精度损失最高不能超过1，所以
+       不管obj - parseFloat(obj)的值是正是负（大部分都是0），再加上1，肯定大于等于0
+
+11.可以new对象的内置构造函数（9个），一般需要用type函数来判断类型
+
+   Number,Boolean,String,Array,Date,Function,Object,RegExp,Error
+
+   其他的内置对象，比如JSON,Math并不能new对象
+
+10.Object()函数具有最强的包装性
+
+   可以把基本类型的值变成包装类型
+   如果是传入的本身就是一个object对象，原样返回
+
+    Object(124) -> new Number(124)
+    Object(true) -> new Boolean(true)
+    Object('liy') -> new String('liy')
+    Object(null) -> new Object()
+    Object(undefined) -> new Object()
+    Object([1,2,3]) -> new Array(1,2,3)
+    Object(new Date()) -> new Date()
+    Object(\a\) -> new RegExp('a')
+
+9.arrayLike
+
+  var al = {
+    0:1,
+    1:2,
+    2:3,
+    length:3
+  }
+ object的key一定为string类型！！！
+
+ for(var attr in al){
+   console.log(typeof attr);// string
+ }
+
+
+8.判断一个对象是否是window对象
+
+  由于window的特殊性（globel），所以，判断它用的方法也很特殊
+
+  如果一个对象是window对象,那么其下有一个window属性，就是它本身
+
+  return obj!= null && obj == obj.window
+
+
+
+7.数组复制
+
+   如 var arr = [1,2,3,4]
+   a. var arr2 = arr.slice(0)
+   b. var arr2 = arr.concat()
+
+6.likeArray转Array
+
+  如 var likeArray = {0:0,1:1,2:2,length:3}
+   a.var arr = Array.prototype.slice.call(likeArray)
+   b.var arr = [].slice.call(likeArray)
+
+5.在函数内部定义与函数重名的变量
+
+ a.
+   function test(){
+     alert(test)
+   }
+   test() // function test(){ alert(test) }
+   test() // function test(){ alert(test) }
+ b.
+   function test(){
+     var test = 2;
+     alert(test);
+   }
+   test() // 2
+   test() // 2
+ c.
+   function test(){
+     test = 2;
+     alert(test);
+   }
+   test() // 2
+   test() // 报错。因为此时全局下的test已经变为2，并不是一个函数了。Uncaught TypeError: test is not a function
+
+  结论：在函数内部定义跟函数名一致的变量要注意，一定使用var来使得同函数名的变量变为局部变量。。
+  否则，定义的函数只有第一次执行时是正确的，后续的调用会出问题 xxx is not a function
+
+4.
+  var name = 'liyanfeng';
+  (function(){
+    alert(name); // liyanfeng
+  })()
+  相当于
+  var name = 'liyanfeng';
+  function any(){
+    alert(name);
+  }
+  any(); // liyanfeng
+
+
+3. NaN === NaN  --> false
+
+   在js中只有NaN不等于自己，可以利用这个特性来判断一个字符串是否是数字
+
+   如
+
+   var str = '123';
+
+   str = +str;
+
+   if(str === str){
+
+       // 说明不是NaN，也就是说 使用 + 号进行类型转换并没有问题，所以str肯定是数字格式的字符串
+
+   }
+
+2.可以把一个构造函数当成一个普通函数来执行
+
+  var Person = function(){
+    this.name = 'liyanfeng';
+    this.age = 24;
+    console.log('person constructor');
+    return 123;
+  }
+
+  var p = new Person(); // is a new object not a number 123
+
+  var p2 = p.constructor(); // is a number 123 not a new object
+
+
+1.带返回值的构造函数
+
+
+  function return123(){
+
+      console.log('return123 execute...');
+
+      return 123;
+
+  }
+
+
+
+  var Person = function(name,age){
+
+     this.name = name;
+
+     this.age = age;
+
+     return return123();
+
+  }
+
+  var p = Person('liyanfeng',24);
+
+  // 首先打印出 return123 execute...
+
+  console.log(p) // 123
+
+  console.log(p.name) // undefined
+
+  console.log(p.age) // undefined
+
+  name 和 age 绑定到了全局环境中。。
+
+
+  var Person = function(name,age){
+
+     this.name = name;
+
+     this.age = age;
+
+     return return123();
+
+  }
+
+  var p2 = new Person('liyanfeng',24);
+
+  // 首先打印出 return123 execute...
+
+  console.log(p2) // Person {name: "liyanfeng", age: 24}
+
+  console.log(p2.name) // liyanfeng
+
+  console.log(p2.age) // 24
+
+
+  可以看出来，若是前面有new操作符，return后的语句虽然会执行，但是忽略掉了返回值，因为js引擎要把new出的对象的应用赋值给p2。。。p2并不能接收2个返回值。。。！！！！！
+
+
+
+
+
+
+
+

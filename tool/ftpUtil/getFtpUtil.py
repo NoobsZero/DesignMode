@@ -7,17 +7,18 @@ import ftplib
 import json
 import math
 import operator
-import os, sys, stat
+import os
+import sys
 import re
 import socket
 import time
 from _ssl import _SSLSocket
 from ftplib import FTP_TLS
 from ftplib import error_perm, FTP
-from importlib import import_module
 from typing import Optional
 
 from tool.base64Util.getBase64Util import get_decode_base64
+from tool.dataUtil.getSerializesAndDeserializes import obj2dict, dict2obj
 from tool.getConfigUtil import get_ftp_config
 
 """An FTP_OPS client class and some helper functions.
@@ -73,28 +74,6 @@ def run_time(func):
         return ret
 
     return call_func
-
-
-'''序列化和反序列化'''
-
-
-def obj2dict(obj):
-    d = {'__class__': obj.__class__.__name__, '__module__': obj.__module__}
-    d.update(obj.__dict__)
-    return d
-
-
-def dict2obj(d):
-    if '__class__' in d:
-        class_name = d.pop('__class__')
-        module_name = d.pop('__module__')
-        module = import_module(module_name)
-        class_ = getattr(module, class_name)
-        args = dict((key, value) for key, value in d.items())
-        instance = class_(**args)
-    else:
-        instance = d
-    return instance
 
 
 '''未完成'''

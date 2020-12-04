@@ -23,9 +23,8 @@ def wordcount(file):
 
 
 if __name__ == '__main__':
-    str1 = "wordcount wordcount wordcount wordcount wordcount"
+    str1 = "wordcount wordcount wordcount wordcount wordcount ip ss"
     chars, words, lines = wordcount(str1)
     print(chars)
-
     print(words)
     print(lines)
