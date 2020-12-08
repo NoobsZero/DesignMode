@@ -82,8 +82,8 @@ def get_filelist(dir, fileCondition=''):
     return Filelist
 
 
-def moveFileToDir(infile, todir):
-    todoList = get_filelist(infile, 'sql')
+def moveFileToDir(infile, todir, fileCondition=''):
+    todoList = get_filelist(infile, fileCondition)
     sqlList = get_filelist(todir)
     num = 0
     for i in todoList:
@@ -92,7 +92,7 @@ def moveFileToDir(infile, todir):
         newSql = os.path.join(todir, os.path.split(i)[1])
         if newSql in sqlList:
             name = os.path.split(i)[1].split('.')
-            new = os.path.join(todir, ".".join(["".join(name[0:-1]) + '_' + str(random.randint(0, 100)), name[-1]]))
+            new = os.path.join(todir, ".".join(["".join(name[0:-1]) + '_' + str(random.randint(0, 1000)), name[-1]]))
             os.renames(i, new)
             print(i + "\tto\t" + new)
         else:
@@ -102,20 +102,43 @@ def moveFileToDir(infile, todir):
 
 if __name__ == '__main__':
     # fns = glob.glob(r'E:\toos\test\image\*.jpg')  ##获取当前目录下所有jpg格式的文件
-    indir = r'\\192.168.90.10\data\chejian\chejian\东营\zip\1231-东营车检-赵群-正在上传\3\2019-12-31'
-    todir = r'\\192.168.90.10\data\chejian\chejian\东营\zip\2019\2019-12-31'
-    # moveFileToDir(indir, todir)
+    indir = r'\\192.168.90.10\data\chejian\chejian\嘉兴\zip\20190705-0717'
+    todir = r'\\192.168.90.10\data\chejian\chejian\嘉兴\zip'
+    moveFileToDir(indir, todir, 'zip')
     # delDir(indir)
-    file1 = get_filelist(indir)
-    file2 = os.listdir(todir)
 
-    for i in file1:
-        newSql = os.path.split(i)[1]
-        if newSql not in file2:
-            print(newSql)
-            shutil.move(i, todir)
-        else:
-            os.remove(i)
+    # lis = os.listdir(indir)
+    # lis_sql = []
+    # for i in lis:
+    #     if i[-3:] == 'sql':
+    #         lis_sql.append(os.path.join(indir,i))
+    # todoList = lis_sql
+    # sqlList = get_filelist(todir)
+    # num = 0
+    # for i in todoList:
+    #     num = num + 1
+    #     print(num)
+    #     newSql = os.path.join(todir, os.path.split(i)[1])
+    #     if newSql in sqlList:
+    #         name = os.path.split(i)[1].split('.')
+    #         new = os.path.join(todir, ".".join(["".join(name[0:-1]) + '_' + str(random.randint(0, 1000)), name[-1]]))
+    #         os.renames(i, new)
+    #         print(i + "\tto\t" + new)
+    #     else:
+    #         shutil.move(i, newSql)
+    #         print(newSql)
+
+
+    # file1 = get_filelist(indir)
+    # file2 = os.listdir(todir)
+    #
+    # for i in file1:
+    #     newSql = os.path.split(i)[1]
+    #     if newSql not in file2:
+    #         print(newSql)
+    #         shutil.move(i, todir)
+    #     else:
+    #         os.remove(i)
 
     # fns = glob.glob('H:/dataset/*.jpg')  ##获取当前目录下所有jpg格式的文件
     # src_fns = [fn for fn in fns if fn[-7:-4] == 'src']  ##获取当前目录下的所有原始数据，存为一个list
