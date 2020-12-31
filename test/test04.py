@@ -9,6 +9,7 @@ import pandas as pd
 import urllib.request
 from bs4 import BeautifulSoup, SoupStrainer
 import re
+from lxml import etree
 
 headers = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,imageUtil/webp,imageUtil/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
@@ -55,22 +56,49 @@ def for_list(list_x):
 
 def get_url_text(url):
     p_x_list = []
-    reponse = requests.get(url=url, headers=headers)
+    reponse = requests.get(url=url)
     reponse.encoding = 'utf-8'
+    html = etree.HTML(reponse.text)
+    html_data = html.xpath('/html/body/div[2]/div/div[2]/div/div[2]/table/tr')
+    ccgp = {}
+    index = 0
+    for i in html_data:
+        index += 1
+        name = i.xpath('td[1]/text()')
+        data = i.xpath('td[2]/text()')
+        if name != [] and data == []:
+            ccgp[name[0]] = '无'
+        elif name and data != []:
+            ccgp[name[0]] = data[0]
+        if index == 5:
+            name = i.xpath('td[3]/text()')
+            data = i.xpath('td[4]/text()')
+            if name != [] and data == []:
+                ccgp[name[0]] = '无'
+            elif name and data != []:
+                ccgp[name[0]] = data[0]
+    for i in ccgp:
+        print(i, ccgp[i])
     # reponse = urllib.request.urlopen(url.strip())
-    only_text_tags = SoupStrainer('div', attrs={"class": "vF_detail_content_container"})
-    only_text2 = SoupStrainer('table', attrs={"class": "MsoNormalTable", "border": "1"})
-    # p_x_list = BeautifulSoup(reponse.read().decode('utf-8'), 'html.parser', parse_only=only_text2)
-    print(reponse.text)
-    # p_x_list = BeautifulSoup(reponse.text, 'html.parser')
+    # only_text_tags = SoupStrainer('div', attrs={"class": "vF_detail_content_container"})
+    # only_text2 = SoupStrainer('table', attrs={"class": "MsoNormalTable", "border": "1"})
+    # p_x_list = BeautifulSoup(reponse.read().decode('utf-8'), 'html.parser', parse_only=only_text_tags)
+    # p_x_list = BeautifulSoup(reponse, 'html.parser')
+    # ss = p_x_list.find_elements_by_xpath('/html/body/div[2]/div/div[2]/div/div[2]/table')
+
     # for x in p_x_list:
-        # pattern = re.compile("<(.*?)>")
-        # sub_str = re.sub(pattern, "", str(x))
-        # #     print(sub_str.text)
-        # if (bool(re.compile(u'[\u4e00-\u9fa5]').search(str(sub_str))) or bool(
-        #         re.search(r'\d', str(sub_str)))):
-        #     if bool(re.compile(u'采购|联系|中标|电话|传真|成交').search(str(sub_str))):
-        # print(x.text)
+    # pattern = re.compile("<(.*?)>")
+    # sub_str = re.sub(pattern, "", str(x))
+    # #     print(sub_str.text)
+    # if (bool(re.compile(u'[\u4e00-\u9fa5]').search(str(sub_str))) or bool(
+    #         re.search(r'\d', str(sub_str)))):
+    #     if bool(re.compile(u'采购|联系|中标|电话|传真|成交').search(str(sub_str))):
+    # print(x.text)
+
+
+# //*[@id="detail"]/div[2]/div/div[2]/div/div[2]/table/tbody/tr[2]/td[1]
+# //*[@id="detail"]/div[2]/div/div[2]/div/div[2]/table/tbody/tr[2]/td[2]
+# //*[@id="detail"]/div[2]/div/div[2]/div/div[2]/table/tbody/tr[3]/td[1]
 
 
 # for_list(p_x_list)
@@ -78,7 +106,7 @@ def get_url_text(url):
 
 lis_url_str = []
 if __name__ == '__main__':
-    url = 'http://www.ccgp.gov.cn/cggg/dfgg/zbgg/202008/t20200813_14829965.htm'.strip()
+    url = 'http://www.ccgp.gov.cn/cggg/dfgg/zbgg/202012/t20201218_15655860.htm'.strip()
     get_url_text(url)
     for i in lis_str:
         print(i)

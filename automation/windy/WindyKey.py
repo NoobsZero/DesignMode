@@ -27,7 +27,6 @@ class WindyKey(object):
         server.start()
         proxy = server.create_proxy()
         chrome_options = Options()
-
         chrome_options.add_argument('--proxy-server={0}'.format(proxy.proxy))
         driver = webdriver.Chrome(options=chrome_options)
         base_url = "https://www.windy.com/zh/-%E5%8D%AB%E6%98%9F%E4%BA%91%E5%9B%BE-satellite?satellite,13.561,114.697,5"
@@ -89,6 +88,12 @@ if __name__ == '__main__':
         # 打印页面源码 html5lib解决获取不全html页面
         soup = BeautifulSoup(pageSource.encode("UTF-8", "ignore"), features="html5lib")
         print(soup.prettify())
+        # 窗口切换
+        # handles = browser.window_handles
+        # for handle in handles:
+        #     if handle != browser.current_window_handle:
+        #         browser.close()
+        #         browser.switch_to.window(handle)
 
         # if title:
         #     driver.find_element_by_css_selector("[data-ref='play']").click()  # 加载点击播放键

@@ -4,7 +4,7 @@ import os
 import shutil
 import random
 import paramiko
-
+from progressbar import ProgressBar #进度条
 
 def getSSh():
     ssh = paramiko.SSHClient()
@@ -16,9 +16,6 @@ def getSSh():
 
 
 def mvFileToDir(root_src_dir, root_dst_dir):
-    root_src_dir = os.path.join(os.getcwd(), root_src_dir, '')
-    root_dst_dir = os.path.join(os.getcwd(), root_dst_dir, '')
-    print(str(root_src_dir) + " to " + str(root_dst_dir))
     for src_dir, dirs, files in os.walk(root_src_dir):
         dst_dir = src_dir.replace(root_src_dir, root_dst_dir, 1)
         if not os.path.exists(dst_dir):
@@ -61,8 +58,8 @@ def get_filelist(dir, fileCondition=''):
         """
     Filelist = []
     Dirlist = []
-    suffix = ['.json', '.rar', '.zip', '.cer', '.py', '.exe', '.sh', '.txt', '.html', '.dll', '.h', '.c', '.cpl',
-              '.jsa', '.md', '.properties', '.jar', '.data', '.bfc', '.src', '.ja', '.dat', '.cfg',
+    suffix = ['.rar', '.zip', '.cer', '.py', '.exe', '.sh', '.txt', '.html', '.dll', '.h', '.c', '.cpl', '.jsa', '.md',
+              '.properties', '.jar', '.data', '.bfc', '.src', '.ja', '.dat', '.cfg',
               '.pf', '.gif', '.ttf', '.jfc', '.access', '.template', '.certs', '.policy', '.security', '.libraries',
               '.sym', '.idl', '.lib', '.clusters', '.conf', '.xml', '.tar', '.gz', '.csv', '.sql', '.xml_hidden',
               '.lic']
@@ -114,34 +111,27 @@ def decompressionZIP(dirs, sqlPath):
     zip = get_filelist(dirs, 'zip')
     for i in zip:
         pathname, filename = os.path.split(i)
-        newpath = os.path.join(pathname, filename.split('.')[0], '')
-        print(newpath)
+        newpath = os.path.join(pathname, filename.split('.')[0])
         os.system('mkdir ' + newpath)
         os.system('echo ' + i + ' ... ...')
         if filename[-3:] == '.gz' or filename[-3:] == 'tar':
-            os.system('tar -xf ' + i + ' -C ' + newpath + ' && rm ' + i)
+            os.system('tar -xf ' + i + ' -C ' + newpath + '/ && rm ' + i)
         elif filename[-3:] == 'zip':
-            os.system('unzip -O gbk ' + i + ' -d ' + newpath + ' && rm ' + i)
+            os.system('unzip ' + i + ' -C ' + newpath + '/ && rm ' + i)
         elif filename[-3:] == 'rar' and ('.part' not in filename):
-            os.system('rar e -o+ -y ' + i + ' -C ' + newpath + ' && rm ' + i)
+            os.system('rar e -o+ -y ' + i + ' -C ' + newpath + '/ && rm ' + i)
         print(i)
         os.system('echo ' + i + ' ok')
         moveFileToDir(dirs, sqlPath, fileCondition='sql')
 
 
 if __name__ == '__main__':
-    # print('葵花解压手')
-    # sqlPath = os.path.join(os.path.abspath(os.path.dirname(os.getcwd())),'sql','')
-    # decompressionZIP(os.getcwd(),sqlPath)
-    # print('乾坤大挪移')
-    # root_dst_dir={}
-    # for root_src_dir in root_dst_dir:
-    #     mvFileToDir(root_src_dir, root_dst_dir[root_src_dir])
-    print('佛山清空脚')
-    delDir(os.getcwd())
-    print('万花写轮眼')
     dic = get_filelist(os.getcwd(), 'if')
     print('------------------输出文件-------------------------------')
     for i in dic:
         print(i)
     print('------------------------------------------------------------')
+    # dirs = os.getcwd()
+    # sqlPath = os.path.join(os.path.abspath(os.path.dirname(dirs)),'sql')
+    # decompressionZIP(dirs,sqlPath)
+    # delDir(os.getcwd())

@@ -8,8 +8,6 @@
 import glob
 import os
 import shutil
-
-from tool.dirUtil.getDirUtil import my_move, get_filelist
 import threading  # Python主要通过标准库中的threading包来实现多线程
 import time
 import os
