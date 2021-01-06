@@ -34,6 +34,7 @@ def InspectFileCount(imgCount, downLoadDir):
     问题：
         1、下载文件数目少
         2、文件没有下载完整
+        3、文件就是损坏文件
     :param imgCount:
     :param downLoadDir:
     :return:
@@ -69,7 +70,6 @@ def InspectFileCount(imgCount, downLoadDir):
             time.sleep(2)
     return images
 
-
 if __name__ == '__main__':
     infilename = r"E:\jpg\key.txt"
     download = r"E:\jpg"
@@ -81,7 +81,8 @@ if __name__ == '__main__':
     prefs = {"profile.managed_default_content_settings.images": 2}
     capo = DesiredCapabilities.PHANTOMJS
     options = webdriver.ChromeOptions()
-    options.add_argument('--headless')
+    options.add_experimental_option("prefs", prefs)
+    # options.add_argument('--headless')
     urlList = ModifDocuments(infilename, download)
     cookies = {
         'value': 'think%3A%7B%22id%22%3A%22292931%22%2C%22nick%22%3A%22%25E6%25B1%25BD%25E8%25BD%25A6%25E7%25BD%2591'
@@ -92,10 +93,9 @@ if __name__ == '__main__':
     browser = None
     for key in urlList:
         # noinspection PyBroadException
-        try:
+        # try:
             downloadDir = os.path.join(download, key, '')
             prefs = {"download.default_directory": downloadDir}
-            options.add_experimental_option("prefs", prefs)
             browser = webdriver.Chrome(desired_capabilities=capo, service_args=proxy_data, chrome_options=options)
             browser.get('http://chinacar.com.cn/Login/iLogin.html')
             browser.add_cookie(cookie_dict=cookies)
@@ -103,24 +103,27 @@ if __name__ == '__main__':
             img_list = browser.find_elements_by_class_name('list_text')
             if not os.path.exists(downloadDir):
                 os.makedirs(downloadDir)
-            for li in img_list:
-                browser.execute_script('arguments[0].click();', li)
-                # time.sleep(random.randint(2, 5))
+            index = 0
             eventlet.monkey_patch()  # 必须加这条代码
-            with eventlet.Timeout(600, False):  # 设置超时时间为600秒
-                jpg_lis = InspectFileCount(len(img_list), downloadDir)
+            for li in img_list:
+                index += 1
+                browser.execute_script('arguments[0].click();', li)
+                with eventlet.Timeout(5, False):
+                    InspectFileCount(index, downloadDir)
+        #     with eventlet.Timeout(600, False):  # 设置超时时间为600秒
+        #         jpg_lis = InspectFileCount(len(img_list), downloadDir)
             browser.quit()
-            if len(jpg_lis) == len(img_list):
-                for img in jpg_lis:
-                    prJson = json.dumps({'ID': key, 'img': img}, ensure_ascii=False).encode('utf-8')
-                    requests.post(url=r'http://192.168.50.100:3018/api/v1/chinacar/img', data=prJson)
-                time.sleep(random.randint(1, 2))
-            else:
-                if os.path.exists(downloadDir):
-                    shutil.rmtree(downloadDir)
-        except Exception as e:
-            fo = open("error.txt", "a")
-            fo.write(key + '\n' + traceback.format_exc() + '\n')
-            fo.flush()
-            fo.close()
-            continue
+        #     if len(jpg_lis) == len(img_list):
+        #         for img in jpg_lis:
+        #             prJson = json.dumps({'ID': key, 'img': img}, ensure_ascii=False).encode('utf-8')
+        #             requests.post(url=r'http://192.168.50.100:3018/api/v1/chinacar/img', data=prJson)
+        #         time.sleep(random.randint(1, 2))
+        #     else:
+        #         if os.path.exists(downloadDir):
+        #             shutil.rmtree(downloadDir)
+        # except Exception as e:
+        #     fo = open("error.txt", "a")
+        #     fo.write(key + '\n' + traceback.format_exc() + '\n')
+        #     fo.flush()
+        #     fo.close()
+        #     continue

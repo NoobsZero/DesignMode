@@ -1,0 +1,8 @@
+venv
+.idea
+test.tar.gz
+bak_*
+log
+*.pyc
+*/__pycache__
+_Data_photos
