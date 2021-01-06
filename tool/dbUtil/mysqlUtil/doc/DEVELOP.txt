@@ -4,7 +4,7 @@
 model 模块:
 
     使用 sqlalchemy orm 框架, 迁移工具使用 alembic
-
+    基本使用:https://www.cnblogs.com/pycode/p/mysql-orm.html
     #https://blog.csdn.net/aimill/article/details/82152173
     #https://www.cnblogs.com/chnmig/p/10446346.html
     #迁移过程
