@@ -1,5 +1,11 @@
-from .unCompressFunc import *
-from .parseConf import *
+import os
+import shutil
+
+from tool.dbUtil.mysqlUtil.emCollect.common.baseDBOperate import createDataBase, OperateDB
+from tool.dbUtil.mysqlUtil.emCollect.common.baseDefine import TarContentError
+from tool.dbUtil.mysqlUtil.emCollect.common.baselog import logger
+from tool.dbUtil.mysqlUtil.emCollect.service.parseConf import RawDataBaseInfo, DataSaveConf
+from tool.dbUtil.mysqlUtil.emCollect.service.unCompressFunc import unCompressZIP, unCompressTGZ
 
 
 def preStart(tmpDir):
@@ -221,15 +227,16 @@ def test_start():
 
 def test_insertSqlFile():
     val = [
-        '/home/public/software/test_photo/bak/chejiantest9528/demo/chejian/4419/2020-08-28/photo_info_20200828145137.sql',
-        '/home/public/software/test_photo/bak/chejiantest9528/demo/chejian/4419/2020-08-28/vehicle_info_20200828145137.sql']
-    dbConfPath = "./conf/db.conf.json"
-    dbName = "chejian_test_12345"
+        r'E:\toos\test\滨州车管所数据库-243-2019-12-18.sql',
+        r'E:\toos\test\滨州车管所数据库-243-2019-12-19.sql']
+    dbConfPath = r"E:\JetBrains\PycharmProjects\untitled\tool\dbUtil\mysqlUtil\conf\db.conf.json"
+    dbName = "'emTest_cj_vehicle_20210105'"
     handle = OperateDB(dbConfPath, renameDb=dbName)
-    for item in val:
-        handle.impDBFile(item)
+    print(handle.dbconf.name)
+    # for item in val:
+    #     handle.impDBFile(item)
 
 
 if __name__ == '__main__':
     # test_insertSqlFile()
-    test_start()
+    test_insertSqlFile()

@@ -25,4 +25,3 @@ def initOrmHandle(mysqlUrl):
 
 if __name__ == '__main__':
     ser = initOrmHandle('mysql://root:EmDataMysql2020###@127.0.0.1:3306/emDataCollect?charset=utf8')
-    print(type(ser))

@@ -7,7 +7,6 @@
 @Software:PyCharm
 """
 import os
-import shutil
 import traceback
 import time
 import requests
@@ -15,8 +14,6 @@ from selenium import webdriver
 from selenium.webdriver import DesiredCapabilities
 import json
 import random
-import imghdr
-import eventlet
 
 
 def ModifDocuments(infileName, downLoadDir):
@@ -30,45 +27,32 @@ def ModifDocuments(infileName, downLoadDir):
 
 
 def InspectFileCount(imgCount, downLoadDir):
-    """
-    问题：
-        1、下载文件数目少
-        2、文件没有下载完整
-        3、文件就是损坏文件
-    :param imgCount:
-    :param downLoadDir:
-    :return:
-    """
     jpgLis = []
     count = True
+    index = 0
     while count:
+        index += 1
         for home, dirs, files in os.walk(downLoadDir):
             for filename in files:
                 if filename[-3:] == 'jpg':
-                    jpgLis.append(os.path.join(home, filename))
-        print(key+"总数量:"+str(imgCount)+" / "+str(len(jpgLis)))
-        if imgCount == len(jpgLis):
-            break
-        else:
+                    jpgLis.append(filename)
+        print(len(jpgLis))
+        if imgCount != len(jpgLis):
             jpgLis = []
-            time.sleep(2)
-    images = []
-    jpgLis = sorted(jpgLis)
-    while count:
-        for filename in jpgLis:
-            if filename not in images:
-                check = imghdr.what(filename)
-                if check:
-                    images.append(filename)
-                    print(key, os.path.split(filename)[1])
-        if len(jpgLis) == len(images):
-            images.clear()
-            for iago in jpgLis:
-                images.append(os.path.split(iago)[1])
+            time.sleep(5)
+            if index >= 5:
+                break
+        elif imgCount == len(jpgLis):
+            for i in jpgLis:
+                print(key, i)
             break
         else:
-            time.sleep(2)
-    return images
+            de = open("chinacarPictureLog.txt", "a")
+            de.write(key + ',' + str(jpgLis) + ',' + str(imgCount) + '\n')
+            de.flush()
+            de.close()
+    return jpgLis
+
 
 if __name__ == '__main__':
     infilename = r"E:\jpg\key.txt"
@@ -81,8 +65,7 @@ if __name__ == '__main__':
     prefs = {"profile.managed_default_content_settings.images": 2}
     capo = DesiredCapabilities.PHANTOMJS
     options = webdriver.ChromeOptions()
-    options.add_experimental_option("prefs", prefs)
-    # options.add_argument('--headless')
+    options.add_argument('--headless')
     urlList = ModifDocuments(infilename, download)
     cookies = {
         'value': 'think%3A%7B%22id%22%3A%22292931%22%2C%22nick%22%3A%22%25E6%25B1%25BD%25E8%25BD%25A6%25E7%25BD%2591'
@@ -93,9 +76,10 @@ if __name__ == '__main__':
     browser = None
     for key in urlList:
         # noinspection PyBroadException
-        # try:
+        try:
             downloadDir = os.path.join(download, key, '')
             prefs = {"download.default_directory": downloadDir}
+            options.add_experimental_option("prefs", prefs)
             browser = webdriver.Chrome(desired_capabilities=capo, service_args=proxy_data, chrome_options=options)
             browser.get('http://chinacar.com.cn/Login/iLogin.html')
             browser.add_cookie(cookie_dict=cookies)
@@ -103,27 +87,19 @@ if __name__ == '__main__':
             img_list = browser.find_elements_by_class_name('list_text')
             if not os.path.exists(downloadDir):
                 os.makedirs(downloadDir)
-            index = 0
-            eventlet.monkey_patch()  # 必须加这条代码
             for li in img_list:
-                index += 1
                 browser.execute_script('arguments[0].click();', li)
-                with eventlet.Timeout(5, False):
-                    InspectFileCount(index, downloadDir)
-        #     with eventlet.Timeout(600, False):  # 设置超时时间为600秒
-        #         jpg_lis = InspectFileCount(len(img_list), downloadDir)
+                time.sleep(random.randint(2, 3))
+            jpg_lis = InspectFileCount(len(img_list), downloadDir)
             browser.quit()
-        #     if len(jpg_lis) == len(img_list):
-        #         for img in jpg_lis:
-        #             prJson = json.dumps({'ID': key, 'img': img}, ensure_ascii=False).encode('utf-8')
-        #             requests.post(url=r'http://192.168.50.100:3018/api/v1/chinacar/img', data=prJson)
-        #         time.sleep(random.randint(1, 2))
-        #     else:
-        #         if os.path.exists(downloadDir):
-        #             shutil.rmtree(downloadDir)
-        # except Exception as e:
-        #     fo = open("error.txt", "a")
-        #     fo.write(key + '\n' + traceback.format_exc() + '\n')
-        #     fo.flush()
-        #     fo.close()
-        #     continue
+            for img in jpg_lis:
+                prJson = json.dumps({'ID': key, 'img': img}, ensure_ascii=False).encode('utf-8')
+                requests.post(url=r'http://192.168.50.100:3018/api/v1/chinacar/img', data=prJson)
+            time.sleep(random.randint(1, 2))
+        except Exception as e:
+            fo = open("error.txt", "a")
+            fo.write(key + '\n' + traceback.format_exc() + '\n')
+            fo.flush()
+            fo.close()
+            continue
+

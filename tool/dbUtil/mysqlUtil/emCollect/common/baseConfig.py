@@ -16,8 +16,8 @@ class ReadConfigure:
         except Exception as ex:
             print(ex)
             msg = traceback.format_exc()
-            #print(msg)
-            logger.error("读取文件失败:[{}][{}] ".format(filePath,ex ))
+            # print(msg)
+            logger.error("读取文件失败:[{}][{}] ".format(filePath, ex))
             sys.exit(1)
         self.str = fd.read()
         # print "conf_content:", self.str
