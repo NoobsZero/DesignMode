@@ -3,7 +3,6 @@ import datetime
 import os
 import random
 import shutil
-
 import pymysql
 from ast import literal_eval
 import pypinyin
@@ -796,7 +795,7 @@ if __name__ == '__main__':
     for cs in os.listdir(urlpath):
         cy_url = os.path.join(urlpath, cs, 'sql')
         zip_url = os.path.join(urlpath, cs, 'zip')
-        if os.path.isdir(cy_url):
+        if os.path.isdir(cy_url) and os.path.isdir(zip_url):
             sqlurls = getInfo(get_filelist(cy_url, 'sql'), local_sql_txt)
             zipurls = lisdir(zip_url, [])
             if len(sqlurls) > 0:
@@ -812,12 +811,12 @@ if __name__ == '__main__':
                     try:
                         print(sqlurl)
                         print('读取数据中。。。。。。')
-                        if isinstance(sqlurl, tuple):
+                        if isinstance(sqlurl, tuple) and os.path.getsize(sqlurl)/1024/1024/1024 < 1:
                             info_datas_lis = getSqlData(sqlurl[0], 'new')[0]
                             filter_lis_key(info_datas_lis, 'info')
                             check_datas_lis = getSqlData(sqlurl[1], 'new')[1]
                             filter_lis_key(check_datas_lis, 'check')
-                        elif isinstance(sqlurl, str):
+                        elif isinstance(sqlurl, str) and os.path.getsize(sqlurl)/1024/1024/1024 < 1:
                              info_datas_lis, check_datas_lis = getSqlData(sqlurl)
                         check_datas_lis, info_datas_lis = filterSql(check_datas_lis=check_datas_lis,
                                                                     info_datas_lis=info_datas_lis, zipurls=zipurls)

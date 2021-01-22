@@ -1,10 +1,8 @@
 # 导入pymysql模块
 import datetime
 import os
-import random
-import shutil
-
 import pymysql
+import pandas as pd
 from ast import literal_eval
 import pypinyin
 import requests
@@ -460,87 +458,23 @@ def readlines(f, separator):
         buf += chunk  # 如果read有数据 ,将read到的数据加入到buf中
 
 
-table_infos_new_dic = {'UUID': 'id', 'cheLiangUid': 'vehicle_check_id', 'zhaoPianLeiXing': 'category',
-                       'localPath': 'name', 'jieGuo': 'result', 'shuoMing': 'reason', 'inDbTime': 'created_at'}
-table_checks_new_dic = {'UUID': 'id', 'liuShuiHao': 'jylsh', 'jianYanJiGouBianHao': 'jyjgbh', 'jianYanLeiBie': 'jylb',
-                        'haoPaiZhongLei': 'hpzl', 'chePaiHao': 'hphm', 'cheJiaHao': 'clsbdh', 'shiYongRen': 'syr',
-                        'shouJiHaoMa': 'sjhm', 'shengXiaoRiQi': 'sxrq', 'zhongZhiRiQi': 'zzrq',
-                        'cheLiangLeiXing': 'cllx', 'shiYongXingZhi': 'syxz', 'zhengBeiZhiLiang': 'zbzl',
-                        'jianYanKaiShiShiJian': 'kssj', 'jianYanJieShuShiJian': 'jssj', 'faDongJiHao': 'fdjh',
-                        'cheLiangPinPai': 'clpp', 'cheLiangXingHao': 'clxh', 'chuCiDengJiRiQi': 'ccdjrq',
-                        'zhiZaoRiQi': 'ccrq', 'cheLiangWaiGuanJianYanYuan': 'wgjcjyy',
-                        'xingShiZhengXinBianHao': 'xszbh', 'faZhengRiQi': 'fzrq', 'ranLiangZhongLei': 'rlzl',
-                        'xuYaoDuiBiZhaoPianZongShu': 'zpzs', 'xuYaoDuiBiShiPinZongShu': 'spzs',
-                        'duiBiBuHeGeShu': 'bdbhgs', 'cheLiangYanSe': 'csys', 'paiLiang': 'pl', 'gongLv': 'gl',
-                        'zhuanXiangXingShi': 'zxxs', 'cheWaiKuoChang': 'cwkc', 'cheWaiKuoKuan': 'cwkk',
-                        'cheWaiKuoGao': 'cwkg', 'huoXiangNeiBuChangDu': 'hxnbcd', 'huoXiangNeiBuKuanDu': 'hxnbkd',
-                        'huoXiangNeiBuGaoDu': 'hxnbgd', 'gangBanTanPianShu': 'gbthps', 'zhouShu': 'zs', 'zhouJu': 'zj',
-                        'qianLunJu': 'qlj', 'houLunJu': 'hlj', 'lunTaiGuiGe': 'ltgg', 'lunTaiShu': 'lts',
-                        'zongZhiLiang': 'zzl', 'heDingZaiZhiLiang': 'hdzzl', 'heDingZaiKeShu': 'hdzk',
-                        'zhunQianYinZhiLiang': 'zqyzl', 'jiaShiShiQianPaiZaiKeRenShu': 'qpzk',
-                        'jiaShiShiHouPaiZaiKeRenShu': 'hpzk', 'cheLiangYongTu': 'clyt', 'yongTuShuXing': 'ytsx',
-                        'shiFouXinNengYuanQiChe': 'sfxny', 'xinNengYuanZhongLei': 'xnyzl', 'yanYnaYouXiaoQiZhi': 'yxqz',
-                        'faZhengJiGuan': 'fzjg', 'huanBaoDaBiaoQingKuang': 'hbdbqk', 'qiangZhiBaoFeiQiZhi': 'qzbfqz',
-                        'guanLiXiaQu': 'xzqh', 'guoChanJinKou': 'gcjk', 'diYanBiaoJi': 'dybj', 'zhiZaoGuo': 'zzg',
-                        'yinWenPinPai': 'clpp2', 'jianYanHeGeBiaoJi': 'jyhgbzbh', 'shiFouMianJian': 'sfmj',
-                        'jiDongCheZhuangTai': 'zt', 'zuiJinDingJianRiQi': 'djrq', 'zhuSuoDiZhiXingZhengQuHua': 'zsxzqh',
-                        'lianXiDiZhiXingZhengQuHua': 'zzxzqh', 'faDongJiXingHao': 'fdjxh',
-                        'shiGuSunShangBuWeiQingKuang': 'sgcssbwqk', 'buMianJianYuanYin': 'bmjyy', 'guanLiBuMen': 'glbm',
-                        'zhiZaoChangMingCheng': 'zzcmc', 'jianYanLiuShuiHao': 'jylsh2',
-                        'downloadVideoState': 'is_video_check', 'isRepeat': 'station_status',
-                        'centerStatus': 'center_status', 'isPass': 'is_pass', 'soapReplyCode': 'device_id',
-                        'inDbTime': 'created_at'}
-
-
-def newTableToOldTable(table_lis: list, types):
-    if types == 'table_infos':
-        new_table_lis = [table_infos_new_dic[i] if i in table_infos_new_dic else i for i in table_lis]
-    elif types == 'table_checks':
-        new_table_lis = [table_checks_new_dic[i] if i in table_checks_new_dic else i for i in table_lis]
-    return new_table_lis
-
-
-del_key_info_lis = ['zhaoPianBianHao', 'zhaoPianXiaZaiDiZhi', 'zhaoPianXiaZaiShiJian', 'suanFaFenXiShiJian',
-                    'suanfaYunXingShiJian', 'sheBeiIp', 'jiSuanShiJian']
-del_key_check_lis = ['shenQingShenHeShiJian', 'isPassReason']
-
-
-def filter_lis_key(info_datas_lis, types):
-    if types == 'info':
-        del_key_lis = del_key_info_lis
-    elif types == 'check':
-        del_key_lis = del_key_check_lis
-    for del_key in del_key_lis:
-        for info in info_datas_lis:
-            if del_key in info:
-                info.pop(del_key)
-
-
-def getSqlData(url, re='old'):
-    if re == 'old':
-        checks_start = "INSERT INTO `vehicle_checks` VALUES ("
-        infos_start = "INSERT INTO `check_infos` VALUES ("
-        table_checks_start = "CREATE TABLE `vehicle_checks` ("
-        table_infos_start = "CREATE TABLE `check_infos` ("
-    elif re == 'new':
-        checks_start = "INSERT INTO `vehicle_info` VALUES ("
-        infos_start = "INSERT INTO `photo_info` VALUES ("
-        table_checks_start = "CREATE TABLE `vehicle_info` ("
-        table_infos_start = "CREATE TABLE `photo_info` ("
+def getSqlData(url):
     table_checks_bool = False
     table_infos_bool = False
+    checks_start = "INSERT INTO `vehicle_checks` VALUES ("
+    infos_start = "INSERT INTO `check_infos` VALUES ("
     end = ");"
     checks_lis = []
     infos_lis = []
     table_checks_lis = []
     table_infos_lis = []
-    with open(url, 'rb') as fo:
-        for i in fo:
-            i = i.decode(encoding='utf-8', errors="ignore").strip()
-            if i.startswith(table_checks_start):
+    with open(url, encoding='utf-8', errors="ignore") as f:
+        for i in readlines(f, '\n'):
+            i = i.strip()
+            if i.startswith("CREATE TABLE `vehicle_checks` ("):
                 table_checks_bool = True
                 table_infos_bool = False
-            elif i.startswith(table_infos_start):
+            elif i.startswith("CREATE TABLE `check_infos` ("):
                 table_infos_bool = True
                 table_checks_bool = False
             data = i.split(' ')[0].strip('`')
@@ -571,10 +505,6 @@ def getSqlData(url, re='old'):
                             infos_lis.append(infos)
             except SyntaxError:
                 continue
-    # 对于车检新表做出调整
-    if re == 'new':
-        table_infos_lis = newTableToOldTable(table_infos_lis, 'table_infos')
-        table_checks_lis = newTableToOldTable(table_checks_lis, 'table_checks')
     check_datas_lis = []
     for data in checks_lis:
         data = list(data)
@@ -585,7 +515,7 @@ def getSqlData(url, re='old'):
         data = list(data)
         if len(table_infos_lis) == len(data):
             info_datas_lis.append(dict(zip(table_infos_lis, data)))
-    return info_datas_lis, check_datas_lis
+    return check_datas_lis, info_datas_lis
 
 
 def insert(conn, table, item):
@@ -598,12 +528,10 @@ def insert(conn, table, item):
         cursor.executemany(sql, item_tup)
         conn.commit()
         print('插入成功: %s' % table)
-        return 1
     except Exception as e:
         print('插入失败, 失败表名：%s' % table)
         print('失败原因：%s' % e)
         conn.rollback()
-        return 0
     finally:
         cursor.close()
 
@@ -621,9 +549,7 @@ def info_data_proce(conn, table_info_name, info_datas_lis):
                         '}&reason={}'
                             .format(cs_id, info.pop('category', None), info.pop('reason', None))).text)['id']
         print('info写入数据库。。。。。。')
-        return insert(conn, table_info_name, info_datas_lis)
-    else:
-        return 2
+        insert(conn, table_info_name, info_datas_lis)
 
 
 def getChengshi(sc, chengshi):
@@ -645,8 +571,7 @@ def check_data_proce(conn, table_check_name, check_datas_lis):
             # 删除字段
             del_key_lis = ['ckbdzplist', 'zplist', 'splist', 'bdbhglist']
             for delkey in del_key_lis:
-                if delkey in check:
-                    check.pop(delkey, None)
+                check.pop(delkey, None)
             # 修改字段
             keybyid_lis = ['hpzl', 'csys', 'zzcmc', 'clyt', 'clpp', 'cllx']
             for key in keybyid_lis:
@@ -661,9 +586,7 @@ def check_data_proce(conn, table_check_name, check_datas_lis):
                         'http://192.168.50.100:3018/api/v1/chejian/get_id?field_name=riqi&city_id={}&date={}'
                             .format(cs_id, check['riqi_id'])).text)['id']
         print('check写入数据库。。。。。。')
-        return insert(conn, table_check_name, check_datas_lis)
-    else:
-        return 2
+        insert(conn, table_check_name, check_datas_lis)
 
 
 def pinyin(word):
@@ -690,27 +613,13 @@ def is_all_chinese(strs):
     return True
 
 
-def getInfo(sqlurls, local_sql_txt):
-    photo_info_lis = []
-    vehicle_info_lis = []
-    info_lis = []
-    with open(local_sql_txt, 'r', encoding='utf-8', errors="ignore") as f:
-        data = [line.strip('\n') for line in f.readlines()]
-    for i in sqlurls:
-        if i not in data:
-            if 'info' not in os.path.split(i)[-1]:
-                info_lis.append(i)
-            # elif 'photo_info_' in os.path.split(i)[-1]:
-            #     photo_info_lis.append(i)
-            # elif 'vehicle_info_' in os.path.split(i)[-1]:
-            #     vehicle_info_lis.append(i)
-            # else:
-            #     with open(local_sql_txt, 'a', encoding='utf-8', errors="ignore") as fo:
-            #         fo.write(moveFileToDir(i, os.path.join(cy_url, '其他')) + '\n')
-            #         fo.flush()
-    # for f in photo_info_lis:
-    #     info_lis.append((f, vehicle_info_lis[vehicle_info_lis.index(str(f).replace('photo_info_', 'vehicle_info_'))]))
-    return info_lis
+def is_odd(n):
+    """
+        filter过滤
+    :param n:
+    :return:
+    """
+    return 'info' not in n
 
 
 def lisdir(zip_url, urllis):
@@ -746,20 +655,6 @@ def validate(date_text):
     return re
 
 
-def moveFileToDir(infile, todir):
-    sqlList = get_filelist(todir)
-    if not os.path.isdir(todir):
-        os.mkdir(todir)
-    newSql = os.path.join(todir, os.path.split(infile)[1])
-    if newSql in sqlList:
-        name = os.path.split(infile)[1].split('.')
-        newSql = os.path.join(todir, ".".join(["".join(name[0:-1]) + '_' + str(random.randint(0, 1000)), name[-1]]))
-        os.renames(infile, newSql)
-    else:
-        shutil.move(infile, newSql)
-    return newSql
-
-
 def filterSql(check_datas_lis, info_datas_lis, zipurls):
     vehicle_check_id_lis = {}
     new_info_datas_lis = []
@@ -776,67 +671,72 @@ def filterSql(check_datas_lis, info_datas_lis, zipurls):
     return new_check_datas_lis, new_info_datas_lis
 
 
-def resultInfoToDir(result_info, result_check, sqlurl):
-    if result_info == 1 and result_check == 1 and os.path.isfile(sqlurl):
-        sqlurl = moveFileToDir(sqlurl, os.path.join(cy_url, '已入库'))
-    elif result_info == 0 and result_check == 0 and os.path.isfile(sqlurl):
-        sqlurl = moveFileToDir(sqlurl, os.path.join(cy_url, '异常'))
-    elif result_info == 2 and result_check == 2 and os.path.isfile(sqlurl):
-        sqlurl = moveFileToDir(sqlurl, os.path.join(cy_url, '无图片'))
-    with open(local_sql_txt, 'a', encoding='utf-8', errors="ignore") as fo:
-        fo.write(sqlurl + '\n')
-        fo.flush()
-    print('移动到:' + str(sqlurl))
+class SQLDataApi(object):
+    def dicToDf(self, dic):
+        # 显示所有列
+        # pd.set_option('display.max_columns', None)
+        # 显示所有行
+        # pd.set_option('display.max_rows', 5)
+        # 设置value的显示长度为100，默认为50
+        # pd.set_option('max_colwidth', 100)
+        return pd.DataFrame(dic, index=range(len(dic)))
+
+    # def filterName(self, name):
+
+
+def gilterEmInfoK(k, zipurls):
+    for i in k.split('/'):
+        if validate(i) and i in zipurls:
+            return True
+    return False
+
+
+def getEmInfoTime(k):
+    for i in k.split('/'):
+        if validate(i):
+            return i
+
+
+# def info_data_proce(info_datas_lis):
 
 
 if __name__ == '__main__':
-    local_sql_txt = r"E:\dbsql\sqlurl.txt"
-    local_erro_txt = r"E:\dbsql\sqlerro.txt"
-    urlpath = r'\\192.168.90.10\data\chejian\chejian'
-    for cs in os.listdir(urlpath):
-        cy_url = os.path.join(urlpath, cs, 'sql')
-        zip_url = os.path.join(urlpath, cs, 'zip')
-        if os.path.isdir(cy_url):
-            sqlurls = getInfo(get_filelist(cy_url, 'sql'), local_sql_txt)
-            zipurls = lisdir(zip_url, [])
-            if len(sqlurls) > 0:
-                # # table_check_name, table_info_name = createTable(conn, pinyin(cs))
-                cs_id = \
-                    literal_eval(
-                        requests.get(
-                            'http://192.168.50.100:3018/api/v1/chejian/get_id?field_name=city&field_value={}&en_name={}'
-                                .format(getChengshi(cs, chengshi), pinyin(cs))).text)['id']
+    em = SQLDataApi()
+    zip_url = r'\\192.168.90.10\data\chejian\chejian\滨州\zip'
+    zipurls = lisdir(zip_url, [])
+    file_name = r'E:\dbsql\test\2019-09-10_52.sql'
+    # file_name = r'E:\dbsql\test\滨州车管所数据库-243-2019-12-18.sql'
+    check_datas_dic, info_datas_dic = getSqlData(file_name)
+    # 删除或修改并去重字段
+    em_check = em.dicToDf(check_datas_dic) \
+        .drop(columns=['ckbdzplist', 'zplist', 'splist', 'bdbhglist']) \
+        .rename(
+        columns={'hpzl': 'hpzl_id', 'csys': 'csys_id', 'zzcmc': 'zzcmc_id', 'clyt': 'clyt_id', 'clpp': 'clpp_id',
+                 'cllx': 'cllx_id'})
+    em_check.drop_duplicates(subset=['id'], keep='first', inplace=True)
+    em_info = em.dicToDf(info_datas_dic) \
+        .rename(columns={'created_at': 'info_created_at'})
+    em_info.drop_duplicates(subset=['id'], keep='first', inplace=True)
+    # 过滤数据
+    em_info = em_info.loc[(em_info['name'].fillna('').map(lambda k: gilterEmInfoK(k, zipurls))), :]
+    em_check = em_check.loc[em_check.id.map(lambda x: x in em_info.vehicle_check_id.values.tolist()), :]
+    # 添加字段
+    em_check['riqi_id'] = em_check[['id']].merge(em_info[['vehicle_check_id', 'name']], how='left', left_on='id',
+                                        right_on='vehicle_check_id').name.map(lambda k: getEmInfoTime(k))
+    print(em_check)
 
-                table_check_name, table_info_name = "cj_" + pinyin(cs) + "_checks", "cj_" + pinyin(cs) + "_infos"
-                for sqlurl in sqlurls:
-                    try:
-                        print(sqlurl)
-                        print('读取数据中。。。。。。')
-                        if isinstance(sqlurl, tuple):
-                            info_datas_lis = getSqlData(sqlurl[0], 'new')[0]
-                            filter_lis_key(info_datas_lis, 'info')
-                            check_datas_lis = getSqlData(sqlurl[1], 'new')[1]
-                            filter_lis_key(check_datas_lis, 'check')
-                        elif isinstance(sqlurl, str):
-                             info_datas_lis, check_datas_lis = getSqlData(sqlurl)
-                        check_datas_lis, info_datas_lis = filterSql(check_datas_lis=check_datas_lis,
-                                                                    info_datas_lis=info_datas_lis, zipurls=zipurls)
-                        print("连接database")
-                        conn = pymysql.connect(host='192.168.50.100', user='root', password='EmDataMysql2020###',
-                                               database='em_vehicle', charset='utf8')
-                        print("info数据清洗")
-                        result_info = info_data_proce(conn, table_info_name, info_datas_lis)
-                        print("check数据清洗")
-                        result_check = check_data_proce(conn, table_check_name, check_datas_lis)
-                        print("关闭数据库连接")
-                        conn.close()
-                        if isinstance(sqlurl, tuple):
-                            resultInfoToDir(result_info, result_check, sqlurl[0])
-                            resultInfoToDir(result_info, result_check, sqlurl[1])
-                        elif isinstance(sqlurl, str):
-                            resultInfoToDir(result_info, result_check, sqlurl)
-                    except MemoryError:
-                        with open(local_erro_txt, 'a', encoding='utf-8', errors="ignore") as fo:
-                            fo.write(sqlurl + '\n')
-                            fo.flush()
-                        continue
+    # os.system('mysql -h localhost -uroot -proot -Dtest<{}'.format(r'E:\dbsql\test\2019-09-10_52.sql'))
+    # my_file = r'E:\dbsql\test\2019-09-10_52.sql'
+    # conn = pymysql.connect(host='localhost', user='root', password='root',
+    #                        database='test', charset='utf8')
+    # cur = conn.cursor()
+    # 设置只读模式
+    # file_path = os.path.join(my_file)
+    # data = pd.read_csv(open(file_name, 'r', encoding='utf-8'), sep='\n', skip_blank_lines='True')
+    # cursor.close()
+    # print(read_trunk(file_name,200))
+    # with open(file_name, encoding='utf-8', errors="ignore") as f:
+    #     for line in readlines(f, ';'):
+    #         # 为什么readlines函数能够使用for循环遍历呢, 因为这个函数里面有yield关键字呀, 有它就是一个生成器函数 ......
+    #         print(line)
+    #         print()

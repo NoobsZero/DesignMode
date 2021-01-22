@@ -1,18 +1,17 @@
 # -*- encoding:utf-8 -*-
-# coding=utf-8
-import re
-import os
-import shutil
-import random
-# import paramiko
-import time
-from importlib import reload
-
-import jieba
-import sys
+"""
+@File   :text01.py
+@Time   :2021/1/15 14:30
+@Author :Chen
+@Software:PyCharm
+"""
 import datetime
-from tomorrow import threads
+import os
+import re
+import time
 from dateutil.parser import parse
+import jieba
+from tomorrow import threads
 
 cs_id = {'110000': '北京市', '110100': '北京市', '110101': '东城区', '110102': '西城区', '110105': '朝阳区', '110106': '丰台区',
          '110107': '石景山区',
@@ -561,356 +560,19 @@ cs_id = {'110000': '北京市', '110100': '北京市', '110101': '东城区', '1
          '820000': '澳门特别行政区'}
 
 
-# def getSSh():
-#     ssh = paramiko.SSHClient()
-#     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-#     # ssh.connect()
-#     # ssh.exec_command("cd "+dirs)
-#     ssh.close
-#     return ssh
-
-def mvDirToDir(root_src_dir, root_dst_dir):
-    """
-        移动目录下所有文件到目录
-    :param root_src_dir: 源目录
-    :param root_dst_dir: 指定目录
-    """
-    root_src_dir = os.path.join(os.getcwd(), root_src_dir, '')
-    root_dst_dir = os.path.join(os.getcwd(), root_dst_dir, '')
-    print(str(root_src_dir) + " to " + str(root_dst_dir))
-    for src_dir, dirs, files in os.walk(root_src_dir):
-        dst_dir = src_dir.replace(root_src_dir, root_dst_dir, 1)
-        if not os.path.exists(dst_dir):
-            os.makedirs(dst_dir)
-        for file_ in files:
-            src_file = os.path.join(src_dir, file_)
-            dst_file = os.path.join(dst_dir, file_)
-            if os.path.exists(dst_file):
-                # in case of the src and dst are the same file
-                if os.path.samefile(src_file, dst_file):
-                    continue
-                os.remove(dst_file)
-            shutil.move(src_file, dst_dir)
-
-
-def moveFileToDir(root_src_file, root_dst_dir):
-    """
-        移动文件到目录
-    :param root_src_file: 源文件
-    :param root_dst_dir: 指定目录
-    """
-    if os.path.isfile(root_src_file):
-        if not os.path.exists(root_dst_dir):
-            os.makedirs(root_dst_dir)
-        root_dst_file = os.path.join(root_dst_dir, os.path.split(root_src_file)[-1])
-        root_dst_lis = get_filelist(root_dst_dir)
-        if root_dst_file in root_dst_lis:
-            name = os.path.split(root_dst_file)[1].split('.')
-            new_root_src_file = os.path.join(root_dst_dir,
-                                             ".".join(["".join(name[0:-1]) + '_' + str(round(time.time())), name[-1]]))
-            os.renames(root_src_file, new_root_src_file)
-        else:
-            shutil.move(root_src_file, root_dst_file)
-
-
-def get_filelist(dir, fileCondition='', topdown=True):
-    """
-            递归获取目录下所有后缀为suffix的路径
-        :param fileCondition:后缀为(zip:压缩包, sql:sql文件, suffix:jpg路径和非jpg文件路径, '':所有文件路径)
-        :param dir: 指定URL是目录（'dir'）
-        :return: Filelist:list URL集合
-        """
-    Filelist = []
-    suffix = ['.ini', '.local', 'log', '.log', '.DAT', '.xlsx', '.z01', '.json', '.rar', '.zip', '.cer', '.py', '.exe',
-              '.sh',
-              '.txt',
-              '.html', '.dll', '.h', '.c',
-              '.cpl', '.jsa', '.md', '.properties', '.jar', '.data', '.bfc', '.src', '.ja', '.dat', '.cfg',
-              '.pf', '.gif', '.ttf', '.jfc', '.access', '.template', '.certs', '.policy', '.security', '.libraries',
-              '.sym', '.idl', '.lib', '.clusters', '.conf', '.xml', '.tar', '.gz', '.csv', '.sql', '.xml_hidden',
-              '.lic']
-    list_jpg_dir = []
-    for home, dirs, files in os.walk(dir, topdown=topdown):
-        for filename in files:
-            # 文件名列表，包含完整路径
-            if fileCondition is 'zip':
-                if filename.endswith('.rar') or filename.endswith('.gz') or filename.endswith('.tar') or \
-                        os.path.splitext(filename)[-1].endswith('.z', 0, 2) and (
-                        'sql' not in filename):
-                    Filelist.append(os.path.join(home, filename))
-            elif fileCondition is 'sql':
-                if 'sql' in filename:
-                    Filelist.append(os.path.join(home, filename))
-            elif fileCondition is 'rar':
-                if filename[-3:] == 'rar':
-                    Filelist.append(os.path.join(home, filename))
-            elif fileCondition is 'suffix':
-                if os.path.splitext(filename)[1] in suffix or filename[-3:] in suffix:
-                    Filelist.append(os.path.join(home, filename))
-                elif home not in list_jpg_dir:
-                    list_jpg_dir.append(home)
-            elif fileCondition is '':
-                Filelist.append(os.path.join(home, filename))
-    if fileCondition is 'suffix':
-        return Filelist, list_jpg_dir
-    else:
-        return Filelist
-
-
-def delDir(dirPath):
-    """
-        递归删除指定目录下空文件及目录
-        :param dirPath:目录路径
-    """
-    for root, dirs, files in os.walk(dirPath, topdown=False):
-        for file in files:
-            src_file = os.path.join(root, file)
-            if os.path.getsize(src_file) == 0:
-                os.remove(src_file)
-    for root, dirs, files in os.walk(dirPath, topdown=False):
-        if not os.listdir(root):
-            os.system('rmdir ' + root)
-
-
-def getZipSubsection(sc, lis):
-    lis_sub_zip = []
-    sc_file = os.path.splitext(sc)[0]
-    for k in lis:
-        if sc_file in k and sc not in k:
-            lis_sub_zip.append(k)
-    return lis_sub_zip
-
-
-def decompressionZIP(dirs, sqlPath):
-    """
-        linux压缩包解压
-    :param dirs: 扫描目录
-    :param sqlPath: sql文件目录
-    """
-    if not os.path.isdir(sqlPath):
-        os.system('mkdir ' + sqlPath)
-    zip = get_filelist(dirs, 'zip')
-    for i in zip:
-        new_file_name = i.split('/')[-1]
-        old_file_name = i.split('/')[-1]
-        for tu in ['(', ')', ' ', '-', '#', ';', '$', '!', '@', '&', '\\', '"']:
-            new_file_name = new_file_name.replace(tu, '_')
-        new_file_name = i.replace(old_file_name, new_file_name)
-        if i != new_file_name:
-            os.system('mv ' + "'" + i + "'" + ' ' + new_file_name)
-        i = new_file_name
-        pathname, filename = os.path.split(i)
-        newpath = os.path.join(pathname, filename.split('.')[0], '')
-        print(newpath)
-        if not os.path.isdir(newpath):
-            os.system('mkdir ' + newpath)
-        os.system('echo ' + i + ' ... ...')
-        if filename.endswith('.gz') or filename.endswith('tar'):
-            os.system('tar -xf ' + i + ' -C ' + newpath + ' && rm ' + i)
-        elif filename.endswith('zip'):
-            lis_sub_zip = getZipSubsection(filename, zip)
-            if len(lis_sub_zip) > 0:
-                new_i = os.path.splitext(i)[0] + '_all' + os.path.splitext(i)[-1]
-                os.system('mv ' + i + ' ' + new_i)
-                for sub_zip in lis_sub_zip:
-                    os.system('cat ' + sub_zip + ' > ' + i + ' && rm ' + sub_zip)
-                os.system('unzip -O gbk ' + new_i + ' -d ' + newpath + ' && rm ' + new_i)
-            else:
-                os.system('unzip -O gbk ' + i + ' -d ' + newpath + ' && rm ' + i)
-        elif filename.endswith('.rar') and ('.part' not in filename):
-            os.system('rar e -o+ -y ' + i + ' -C ' + newpath + ' && rm ' + i)
-        print(i)
-        os.system('echo ' + i + ' ok')
-        todoList = get_filelist(dirs, fileCondition='sql')
-        for sqldir in todoList:
-            moveFileToDir(sqldir, sqlPath)
-    delDir(dirs)
-
-
-sheng = [cs_id[i] for i in cs_id if i[-4:] == '0000']
-shi = [cs_id[i] for i in cs_id if i[-4:] != '0000' and i[-2:] == '00']
-qu = [cs_id[i] for i in cs_id if i[-2:] != '00']
-
-
 @threads(5)
-def cj_data_unzip_city(cs, dir_cj):
-    """
-        车检下载数据按城市移动到指定的文件夹中
-        目前适用于：
-            脚本地址： \\192.168.90.10\data\chejian
-            下载地址: \\192.168.90.10\data\chejian\zip
-            移动地址： \\192.168.90.10\data\chejian\chejian
-    :param cs: 城市名称
-    :param dir_cj: 移动地址
-    车检目录结构：
-        chejian{
-            chejian{
-                保定{
-                    zip{
-                        2019{
-                            2019-10-21{
-                                0111_C01812_LHGCP168088019565_K33_HG7203AB_J_雅阁牌
-                                ......
-                            }
-                            ......
-                        }
-                        2020{
-                            2020-10-21{
-                                0111_C22331_LJ166E469F2008580
-                                ......
-                            }
-                            ......
-                        }
-                        ......
-                    }
-                    todo{
-                        脏数据
-                    }
-                    sql{
-                        sql文件
-                        已入库{
-                            ......
-                        }
-                        无图片{
-                            ......
-                        }
-                        异常{
-                            ......
-                        }
-                        其它（待定）{
-                            ......
-                        }
-                    }
-                    yasuo{
-                        20200121{
-                            0120-常德车检-张兴-已完成{
-                                2020-10-14.tar.gz
-                                ......
-                            }
-                            ......
-                        }
-                        ......
-                    }
-                }
-                ......
-            }
-    """
-    dir_cj_cs = os.path.join(dir_cj, cs)
-    dir_cj_cs_yasuo = os.path.join(dir_cj_cs, 'yasuo')
-    dir_cj_cs_sql = os.path.join(dir_cj_cs, 'sql')
-    dir_cj_cs_todo = os.path.join(dir_cj_cs, 'todo')
-    dir_cj_cs_zip = os.path.join(dir_cj_cs, 'zip')
-    if os.path.isdir(dir_cj_cs_yasuo):
-        print('葵花解压手')
-        decompressionZIP(dir_cj_cs_yasuo, dir_cj_cs_sql)
-    list_nojpg_file, list_jpg_dir = get_filelist(dir_cj_cs_yasuo, 'suffix', False)
-    print('斗转星移')
-    for src_cj_cs_yasuo in list_nojpg_file:
-        moveFileToDir(src_cj_cs_yasuo, os.path.split(src_cj_cs_yasuo.replace(dir_cj_cs_yasuo, dir_cj_cs_todo))[0])
-    print('乾坤大挪移')
-    for src_cj_yasuo in list_jpg_dir:
-        time_dst_dir = getDate(str(src_cj_yasuo).split('/')[-1])
-        if time_dst_dir is not None:
-            mvDirToDir(src_cj_yasuo, os.path.join(dir_cj_cs_zip, time_dst_dir.split('-')[0], time_dst_dir))
-    print('佛山清空脚')
-    delDir(dir_cj_cs_yasuo)
-
-
-def cj_data_classify_city(dir_zip):
-    """
-        车检下载数据按城市移动到指定的文件夹中
-        目前适用于：
-            脚本地址： \\192.168.90.10\data\chejian
-            下载地址: \\192.168.90.10\data\chejian\zip
-            移动地址： \\192.168.90.10\data\chejian\chejian
-        urllis： key：城市名 valuse：文件夹地址
-        dir_zip：下载数据所在地址，目录结构：
-        （20200121{
-            0120-常德车检-张兴-已完成{
-                2020-10-14.tar.gz
-                ......
-            }
-            ......
-        }
-        ......
-        ）
-    """
-    # 解决linux字符串问题
-    reload(sys)
-    sys.setdefaultencoding('utf-8')
-    urllis_dir = lisdir(dir_zip, {})
-    urllis_file = lisdir(dir_zip, {}, 'file')
-    for file_key in urllis_file:
-        if file_key in urllis_dir:
-            urllis_dir[file_key] = urllis_dir[file_key] + urllis_file[file_key]
-        else:
-            urllis_dir[file_key] = urllis_file[file_key]
-    for k, v in urllis_dir.items():
-        for i in v:
-            dir_src = i
-            time = [time for time in str(dir_src).split('/') if validate(time)][0]
-            dir_yasuo = os.path.join(os.getcwd(), 'chejian', k, 'yasuo', time, '')
-            shutil.move(dir_src, dir_yasuo)
-    delDir(dir_zip)
-
-
-def lisdir(zip_url, urllis, type='dir'):
-    """
-        使用递归算法根据城市（区、市、省）匹配字符串中相应的城市并返回结果
-    :param zip_url: 下载数据所在地址
-    :param urllis: key：城市名 valuse：文件夹地址
-    :return: urllis
-    """
-    for url in os.listdir(zip_url):
-        url = os.path.join(zip_url, url)
-        if os.path.isdir(url) and type == 'dir' or type == 'file':
-            cs_key = getChengshi(url, qu, '区')
-            if cs_key is None:
-                cs_key = getChengshi(url, shi, '市')
-            if cs_key is None:
-                cs_key = getChengshi(url, sheng, '省')
-            if cs_key is None:
-                urllis = lisdir(url, urllis, type)
-            else:
-                if cs_key in urllis:
-                    urllis[cs_key].append(url)
-                else:
-                    urllis[cs_key] = [url]
-    return urllis
-
-
-def getChengshi(url, chengshi, suffix):
-    """:arg 通过查询城市列表匹配地址中的城市名称并去掉后缀
-    """
+def getChengshi(sc, chengshi):
     jieba.setLogLevel(jieba.logging.INFO)
-    seg_list = jieba.lcut(url)
+    seg_list = jieba.lcut(sc)
     for i in seg_list:
         for k in chengshi:
-            # linux
-            i = i.encode('utf-8')
-            if i[-3:] == suffix:
-                i = i[:-3]
-            if i in k and k[0:6] in i:
-                if suffix == '市':
-                    return i
-                elif suffix == '区':
-                    return i
-                elif suffix == '省':
-                    return i
+            if i in k and k[0:2] in i:
+                print(i)
 
 
-def getDate(time_dst_dir):
-    time_t1 = re.search(r'(\d{4}-\d{2}-\d{2})', time_dst_dir)
-    time_t2 = re.search(r'(\d{4}\d{2}\d{2})', str(time_dst_dir))
-    time_t3 = re.search(r'(\d{4}年\d{2}月\d{2}日)', str(time_dst_dir))
-    if time_t1 and validate(time_t1.group(1), 'zip'):
-        return time_dst_dir
-    elif time_t2 and validate(time_t2.group(1)):
-        return parse(time_t2.group(1)).strftime('%Y-%m-%d')
-    elif time_t3:
-        return parse(re.sub(r'\D', "", time_t3.group(1))).strftime('%Y-%m-%d')
-    else:
-        return None
+def Merge(dict1, dict2):
+    res = {**dict1, **dict2}
+    return res
 
 
 def validate(date_text, type=None):
@@ -936,34 +598,13 @@ def validate(date_text, type=None):
 
 
 if __name__ == '__main__':
-    # print('一、车检下载数据按城市移动到指定的文件夹中')
-    # dir_zip = os.path.join(os.getcwd(), 'zip')
-    # cj_data_classify_city(dir_zip)
-    # print('二、解压各个城市中的压缩文件')
-    # dir_cj = os.path.join(os.getcwd(), 'chejian')
-    dir_cj = '/data/data/chejian/chejian'
-    # for cs in os.listdir(dir_cj):
-    # cj_data_unzip_city('滨州', dir_cj)
-
-    # sqlPath = os.path.join(os.path.abspath(os.path.dirname(os.getcwd())), 'sql', '')
-    # os.system('mkdir ' + sqlPath)
-    # moveFileToDir(os.getcwd(), sqlPath, 'sql')
-    # print('葵花解压手')
-    # decompressionZIP(os.getcwd(), sqlPath)
-    # print('乾坤大挪移')
-    # dic = {
-    # }
-    # for src in dic:
-    #     mvDirToDir(src, dic[src])
-    # print('佛山清空脚')
-    # delDir(os.path.join(os.getcwd(), 'yasuo'))
-    # print('万花写轮眼')
-    # Filelist, list_jpg_dir = get_filelist(os.path.join(os.getcwd(), 'yasuo'), 'suffix')
-    # print('------------------输出文件-------------------------------')
-    # for i in Filelist:
-    #     print(i)
-    # print('------------------------------------------------------------')
-    # print('------------------输出jpg文件-------------------------------')
-    # for i in list_jpg_dir:
-    #     print(i)
-    # print('------------------------------------------------------------')
+    fileSize = os.path.getsize(r'E:\dbsql\test\滨州车管所数据库-243-2019-12-18.sql')/1024/1024/1024
+    print(fileSize<1)
+    # time_t2 = re.search(r'(\d{4}\d{2}\d{2})', str(str1))
+    # time_t3 = re.search(r'(\d{4}年\d{2}月\d{2}日)', str(str1))
+    # if time_t1 and validate(time_t1.group(1), 'zip'):
+    #     print(str1)
+    # elif time_t2 and validate(time_t2.group(1)):
+    #     print(parse(time_t2.group(1)).strftime('%Y-%m-%d'))
+    # elif time_t3:
+    #     print(parse(re.sub(r'\D', "", time_t3.group(1))).strftime('%Y-%m-%d'))

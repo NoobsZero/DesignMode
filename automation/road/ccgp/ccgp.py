@@ -15,7 +15,12 @@ from tomorrow import threads
 
 
 def get_url_text(url):
-    reponse = requests.get(url=url)
+    proxy_data = [
+        '--proxy=%s' % '61.135.185.152:80',  # 设置的代理ip
+        '--proxy-type=http',  # 代理类型
+        '--ignore-ssl-errors=true',  # 忽略https错误
+    ]
+    reponse = requests.get(url=url, property=proxy_data)
     reponse.encoding = 'utf-8'
     html = etree.HTML(reponse.text)
     html_data = html.xpath('/html/body/div[2]/div/div[2]/div/div[2]/table/tr')

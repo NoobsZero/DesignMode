@@ -698,18 +698,18 @@ def getInfo(sqlurls, local_sql_txt):
         data = [line.strip('\n') for line in f.readlines()]
     for i in sqlurls:
         if i not in data:
-            if 'info' not in os.path.split(i)[-1]:
+            if 'photo_info_' in os.path.split(i)[-1]:
+                photo_info_lis.append(i)
+            elif 'vehicle_info_' in os.path.split(i)[-1]:
+                vehicle_info_lis.append(i)
+            elif 'info' not in os.path.split(i)[-1]:
                 info_lis.append(i)
-            # elif 'photo_info_' in os.path.split(i)[-1]:
-            #     photo_info_lis.append(i)
-            # elif 'vehicle_info_' in os.path.split(i)[-1]:
-            #     vehicle_info_lis.append(i)
-            # else:
-            #     with open(local_sql_txt, 'a', encoding='utf-8', errors="ignore") as fo:
-            #         fo.write(moveFileToDir(i, os.path.join(cy_url, '其他')) + '\n')
-            #         fo.flush()
-    # for f in photo_info_lis:
-    #     info_lis.append((f, vehicle_info_lis[vehicle_info_lis.index(str(f).replace('photo_info_', 'vehicle_info_'))]))
+            else:
+                with open(local_sql_txt, 'a', encoding='utf-8', errors="ignore") as fo:
+                    fo.write(moveFileToDir(i, os.path.join(cy_url, '其他')) + '\n')
+                    fo.flush()
+    for f in photo_info_lis:
+        info_lis.append((f, vehicle_info_lis[vehicle_info_lis.index(str(f).replace('photo_info_', 'vehicle_info_'))]))
     return info_lis
 
 
@@ -818,7 +818,7 @@ if __name__ == '__main__':
                             check_datas_lis = getSqlData(sqlurl[1], 'new')[1]
                             filter_lis_key(check_datas_lis, 'check')
                         elif isinstance(sqlurl, str):
-                             info_datas_lis, check_datas_lis = getSqlData(sqlurl)
+                            check_datas_lis, info_datas_lis = getSqlData(sqlurl)
                         check_datas_lis, info_datas_lis = filterSql(check_datas_lis=check_datas_lis,
                                                                     info_datas_lis=info_datas_lis, zipurls=zipurls)
                         print("连接database")

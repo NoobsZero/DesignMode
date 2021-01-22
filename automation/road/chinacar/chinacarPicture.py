@@ -65,7 +65,7 @@ if __name__ == '__main__':
     prefs = {"profile.managed_default_content_settings.images": 2}
     capo = DesiredCapabilities.PHANTOMJS
     options = webdriver.ChromeOptions()
-    options.add_argument('--headless')
+    # options.add_argument('--headless')
     urlList = ModifDocuments(infilename, download)
     cookies = {
         'value': 'think%3A%7B%22id%22%3A%22292931%22%2C%22nick%22%3A%22%25E6%25B1%25BD%25E8%25BD%25A6%25E7%25BD%2591'
