@@ -15,9 +15,20 @@ import sys
 from ast import literal_eval
 import pypinyin
 import requests
+from sqlalchemy.exc import IntegrityError
 from tomorrow import threads
 from pymysql import ProgrammingError
 from dbutils.pooled_db import PooledDB
+import pandas
+from sqlalchemy import Column, String, create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+import time
+from tqdm import tqdm
+from tqdm import tqdm_notebook, _tqdm_notebook
+import numpy as np
+
+_tqdm_notebook.tqdm_notebook.pandas()
 
 chengshi = {'110000': '北京市', '110101': '东城区', '110102': '西城区', '110105': '朝阳区', '110106': '丰台区', '110107': '石景山区',
             '110108': '海淀区', '110109': '门头沟区', '110111': '房山区', '110112': '通州区', '110113': '顺义区', '110114': '昌平区',
@@ -986,6 +997,7 @@ def db_cj_insert(table, item):
         cursor.close()
         conn.close()
 
+
 def info_data_proce(table_info_name, info_datas_lis, cs_id):
     if len(info_datas_lis) != 0:
         for info in info_datas_lis:
@@ -1211,60 +1223,154 @@ def main(cs):
     cy_url = os.path.join(urlpath, cs, 'sql')
     zip_url = os.path.join(urlpath, cs, 'zip')
     if os.path.isdir(cy_url) and os.path.isdir(zip_url):
-        # sqlurls = getInfo(get_filelist(cy_url, 'sql'), local_sql_txt)
-        # zipurls = lisdir(zip_url, [])
-        # if len(sqlurls) > 0:
+        sqlurls = getInfo(get_filelist(cy_url, 'sql'), local_sql_txt)
+        zipurls = lisdir(zip_url, [])
+        if len(sqlurls) > 0:
             # table_check_name, table_info_name = createTable(pinyin(cs))
-            # cs_id, cs_py = cj_getCs_id(cs, cj_cities_dic)
-            # table_check_name, table_info_name = "cj_" + cs_py + "_checks", "cj_" + cs_py + "_infos"
-            # for sqlurl in sqlurls:
-                # try:
-        sqlurl = r'E:\dbsql\test\chejian_refactor-梧州车检数据库备份20200818.sql'
-        # sqlurl = r'E:\dbsql\test\vehicle_2020-06-28.sql'
-        if 0 < os.path.getsize(sqlurl) / 1024 / 1024 < 500:
-            print(sqlurl)
-            print('读取数据中。。。。。。')
-            if isinstance(sqlurl, tuple):
-                info_datas_lis = getSqlData(sqlurl[0], 'new')[0]
-                check_datas_lis = getSqlData(sqlurl[1], 'new')[1]
-            elif isinstance(sqlurl, str):
-                info_datas_lis, check_datas_lis = getSqlData(sqlurl)
-                print(len(info_datas_lis), len(check_datas_lis))
-                        # check_datas_lis, info_datas_lis = filterSql(check_datas_lis=check_datas_lis,
-                        #                                             info_datas_lis=info_datas_lis, zipurls=zipurls)
-                #         print("info数据清洗")
-                #         result_info = info_data_proce(table_info_name, info_datas_lis, cs_id)
-                #         print("check数据清洗")
-                #         result_check = check_data_proce(table_check_name, check_datas_lis, cs_id)
-                #         if isinstance(sqlurl, tuple):
-                #             resultInfoToDir(result_info, result_check, sqlurl[0], cy_url)
-                #             resultInfoToDir(result_info, result_check, sqlurl[1], cy_url)
-                #         elif isinstance(sqlurl, str):
-                #             resultInfoToDir(result_info, result_check, sqlurl, cy_url)
-                # except MemoryError:
-                #     with open(local_erro_txt, 'a', encoding='utf-8', errors="ignore") as fo:
-                #         fo.write(sqlurl + '\n')
-                #         fo.flush()
-                # continue
+            cs_id, cs_py = cj_getCs_id(cs, cj_cities_dic)
+            table_check_name, table_info_name = "cj_" + cs_py + "_checks", "cj_" + cs_py + "_infos"
+            for sqlurl in sqlurls:
+                try:
+                    # if 1000 < os.path.getsize(sqlurl) / 1024 / 1024:
+                    if 1000 < os.path.getsize(sqlurl) / 1024 / 1024:
+                        print(sqlurl)
+                        print('读取数据中。。。。。。')
+                        if isinstance(sqlurl, tuple):
+                            info_datas_lis = getSqlData(sqlurl[0], 'new')[0]
+                            check_datas_lis = getSqlData(sqlurl[1], 'new')[1]
+                        elif isinstance(sqlurl, str):
+                            info_datas_lis, check_datas_lis = getSqlData(sqlurl)
+                        check_datas_lis, info_datas_lis = filterSql(check_datas_lis=check_datas_lis,
+                                                                    info_datas_lis=info_datas_lis, zipurls=zipurls)
+                        print("info数据清洗")
+                        result_info = info_data_proce(table_info_name, info_datas_lis, cs_id)
+                        print("check数据清洗")
+                        result_check = check_data_proce(table_check_name, check_datas_lis, cs_id)
+                        if isinstance(sqlurl, tuple):
+                            resultInfoToDir(result_info, result_check, sqlurl[0], cy_url)
+                            resultInfoToDir(result_info, result_check, sqlurl[1], cy_url)
+                        elif isinstance(sqlurl, str):
+                            resultInfoToDir(result_info, result_check, sqlurl, cy_url)
+                except MemoryError:
+                    with open(local_erro_txt, 'a', encoding='utf-8', errors="ignore") as fo:
+                        fo.write(sqlurl + '\n')
+                        fo.flush()
+                continue
 
 
-# if __name__ == '__main__':
-#     checks_start = "INSERT INTO `vehicle_info` VALUES ("
-#     infos_start = "INSERT INTO `photo_info` VALUES ("
-#     table_checks_start = "CREATE TABLE `vehicle_info` ("
-#     table_infos_start = "CREATE TABLE `photo_info` ("
-#     end = ");"
-#     print('CREATE TABLE `photo_info` (' is table_infos_start)
-#     i = 'CREATE TABLE `photo_info` ('
-#     if i.startswith(table_checks_start):
-#         print(i)
-#     elif i.startswith(table_infos_start):
-#         print(i)
+# pandas
+def mysql_connection_text():
+    maxconnections = 15  # 最大连接数
+    user = 'root'
+    password = 'root'
+    host = '192.168.41.69'
+    port = 3306
+    base = 'test'
+    engine = create_engine(
+        f'mysql+pymysql://{user}:{password}@{host}:{port}/{base}',
+        max_overflow=0,  # 超过连接池大小外最多创建的连接
+        pool_size=maxconnections,  # 连接池大小
+        pool_timeout=30,  # 池中没有线程最多等待的时间，否则报错
+        pool_recycle=-1,  # 多久之后对线程池中的线程进行一次连接的回收(重置)
+        pool_pre_ping=True
+    )
+    # SessionFactory = sessionmaker(bind=engine)
+    return engine
+
+
+def sqlToDf(sql):
+    # 显示所有列
+    # pandas.set_option('display.max_columns', None)
+    # 显示所有行
+    # pandas.set_option('display.max_rows', None)
+    # 设置value的显示长度为100，默认为50
+    # pandas.set_option('max_colwidth', 100)
+    engine = mysql_connection_text()
+    pd = pandas.read_sql_query(sql, engine)
+    return pd
+
+
+def dfToSql(df, table_name):
+    engine = mysql_connection_text()
+    # engine = create_engine(f'mysql+pymysql://{win_user}:{win_password}@{win_host}:{win_port}/{win_test}', echo=True)
+    df.to_sql(name=table_name, con=engine, if_exists="append", index=False)
+
+
+def gilterEmInfoK(k, zipurls):
+    for i in k.split('/'):
+        if validate(i) and i in zipurls:
+            return True
+    return False
+
+
+def getEmInfoTime(id, x):
+    for i in x.split('/'):
+        if validate(i):
+            return literal_eval(requests.get(
+                'http://192.168.50.100:3018/api/v1/chejian/get_id?field_name=riqi&city_id={}&date={}'.
+                    format(id, i)).text)['id']
+
+
+
 if __name__ == '__main__':
-    local_sql_txt = r"\\192.168.90.10\data\chejian\sqlurl.txt"
-    local_erro_txt = r"\\192.168.90.10\data\chejian\sqlerro.txt"
-    urlpath = r'\\192.168.90.10\data\chejian\chejian'
-    cj_cities_dic = db_cj_seCities()
+    # local_sql_txt = r"/data/data/chejian/sqlurl.txt"
+    # local_erro_txt = r"/data/data/chejian/sqlerro.txt"
+    # urlpath = r'/data/data/chejian/chejian'
+    # cj_cities_dic = db_cj_seCities()
     # for cs in os.listdir(urlpath):
-    cs = '梧州'
-    main(cs)
+    #     main(cs)
+    tqdm.pandas(desc='进行中', ncols=10)
+    # 使用progress_apply 方法替换apply方法
+    # 使用map_apply 方法体用map方法
+
+    zip_url = r'/data/data/chejian/chejian/廊坊/zip'
+    zipurls = lisdir(zip_url, [])
+    sqlurl = '/data/data/chejian/chejian/廊坊/sql/廊坊车检-数据库备份-0506-0509.sql'
+    # os.system('mysql -h 192.168.41.69 -u root -proot -B test --max_allowed_packet=4194304 --net_buffer_length=16384 < %s' % sqlurl)
+    cj_cities_dic = db_cj_seCities()
+    cs_id, cs_py = cj_getCs_id('廊坊', cj_cities_dic)
+    print(sqlurl)
+    check_infos = 'select * from `check_infos` limit 10;'
+    vehicle_checks = 'select * from `vehicle_checks` limit 10;'
+    check_infos_df = sqlToDf(check_infos)
+    print(check_infos_df)
+    print(vehicle_checks)
+
+    # df_check_infos = sqlToDf(check_infos) \
+    #     .rename(columns={'created_at': 'info_created_at'})
+    # df_check_infos.drop_duplicates(subset=['id'], keep='first', inplace=True)
+    # df_vehicle_checks = sqlToDf(vehicle_checks) \
+    #     .drop(columns=['ckbdzplist', 'zplist', 'splist', 'bdbhglist']) \
+    #     .rename(
+    #     columns={'hpzl': 'hpzl_id', 'csys': 'csys_id', 'zzcmc': 'zzcmc_id', 'clyt': 'clyt_id', 'clpp': 'clpp_id',
+    #              'cllx': 'cllx_id', 'created_at': 'check_created_at'})
+    # df_vehicle_checks.drop_duplicates(subset=['id'], keep='first', inplace=True)
+    # # 过滤数据
+    # df_check_infos = df_check_infos.loc[(df_check_infos['name'].fillna('').map(lambda k: gilterEmInfoK(k, zipurls))), :]
+    # df_vehicle_checks = df_vehicle_checks.loc[
+    #                     df_vehicle_checks['id'].isin(list(set(df_check_infos.vehicle_check_id.values.tolist()))), :]
+    # if not (df_check_infos.empty and df_vehicle_checks.empty):
+    #     # 数据清洗
+    #     df_vehicle_checks = pandas.merge(df_vehicle_checks, df_check_infos[['vehicle_check_id', 'name']].rename(
+    #         columns={'name': 'riqi_id'}).drop_duplicates(subset=['vehicle_check_id'], keep='first', inplace=False),
+    #                                      how='left', left_on='id', right_on='vehicle_check_id', sort=False, copy=False)
+    #     df_vehicle_checks.loc[:, 'riqi_id'] = df_vehicle_checks['riqi_id'].apply(lambda x: getEmInfoTime(cs_id, x))
+    #     df_vehicle_checks.loc[:, 'hphm'] = df_vehicle_checks[['fzjg', 'hphm']].apply(lambda x: x['fzjg'][-1] + x['hphm'], axis=1)
+    #     keybyid_lis = ['hpzl', 'csys', 'zzcmc', 'clyt', 'clpp', 'cllx']
+    #     for key in keybyid_lis:
+    #         df_vehicle_checks.loc[:, key + '_id'] = df_vehicle_checks[key + '_id'].apply(lambda x: literal_eval(
+    #             requests.get('http://192.168.50.100:3018//api/v1/chejian/get_id?field_name={}&field_value={}'.
+    #                          format(key, x)).text)['id'])
+    #     df_vehicle_checks.drop(columns=['vehicle_check_id', 'fzjg'], inplace=True)
+    #     df_check_infos.loc[:, 'name'] = df_check_infos['name'].apply(lambda x: x.split('/')[-1])
+    #     df_check_infos['category_id'] = df_check_infos[['category', 'reason']].apply(lambda x: literal_eval(
+    #         requests.get(
+    #             'http://192.168.50.100:3018/api/v1/chejian/get_id?field_name=code&city_id={}&category={}&reason={}'
+    #                 .format(cs_id, x['category'], x['reason'])).text)['id'], axis=1)
+    #     df_check_infos.drop(columns=['category', 'reason'], inplace=True)
+    #     # 数据格式转换
+    #     df_check_infos.loc[:, 'result'] = df_check_infos['result'].astype(str)
+    #     print(df_check_infos)
+    #     print(df_vehicle_checks)
+        # dfToSql(df_vehicle_checks, 'cj_text_checks')
+        # dfToSql(df_check_infos, 'cj_text_infos')

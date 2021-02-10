@@ -17,9 +17,9 @@ from ftplib import FTP_TLS
 from ftplib import error_perm, FTP
 from typing import Optional
 
-from tool.base64Util.getBase64Util import get_decode_base64
+from tool.baseUtil.getBaseUtil import get_decode_base64
 from tool.dataUtil.getSerializesAndDeserializes import obj2dict, dict2obj
-from tool.getConfigUtil import get_ftp_config
+from tool.myconfigUtil.getConfigUtil import get_ftp_config
 
 """An FTP_OPS client class and some helper functions.
 

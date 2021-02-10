@@ -561,14 +561,6 @@ cs_id = {'110000': '北京市', '110100': '北京市', '110101': '东城区', '1
          '820000': '澳门特别行政区'}
 
 
-# def getSSh():
-#     ssh = paramiko.SSHClient()
-#     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-#     # ssh.connect()
-#     # ssh.exec_command("cd "+dirs)
-#     ssh.close
-#     return ssh
-
 def mvDirToDir(root_src_dir, root_dst_dir):
     """
         移动目录下所有文件到目录
@@ -605,9 +597,8 @@ def moveFileToDir(root_src_file, root_dst_dir):
         root_dst_file = os.path.join(root_dst_dir, os.path.split(root_src_file)[-1])
         root_dst_lis = get_filelist(root_dst_dir)
         if root_dst_file in root_dst_lis:
-            name = os.path.split(root_dst_file)[1].split('.')
-            new_root_src_file = os.path.join(root_dst_dir,
-                                             ".".join(["".join(name[0:-1]) + '_' + str(round(time.time())), name[-1]]))
+            new_i = os.path.split(root_dst_file)
+            new_root_src_file = os.path.join(new_i[0], os.path.split(os.path.split(root_dst_file)[0])[-1] + '_' + new_i[-1])
             os.renames(root_src_file, new_root_src_file)
         else:
             shutil.move(root_src_file, root_dst_file)
@@ -639,7 +630,7 @@ def get_filelist(dir, fileCondition='', topdown=True):
                         'sql' not in filename):
                     Filelist.append(os.path.join(home, filename))
             elif fileCondition is 'sql':
-                if 'sql' in filename:
+                if filename.endswith('.sql'):
                     Filelist.append(os.path.join(home, filename))
             elif fileCondition is 'rar':
                 if filename[-3:] == 'rar':
@@ -710,7 +701,8 @@ def decompressionZIP(dirs, sqlPath):
         elif filename.endswith('zip'):
             lis_sub_zip = getZipSubsection(filename, zip)
             if len(lis_sub_zip) > 0:
-                new_i = os.path.splitext(i)[0] + '_all' + os.path.splitext(i)[-1]
+                i_pathname, i_filename = os.path.split(i)
+                new_i = os.path.join(i_pathname[0], 'all_' + i_filename[-1])
                 os.system('mv ' + i + ' ' + new_i)
                 for sub_zip in lis_sub_zip:
                     os.system('cat ' + sub_zip + ' > ' + i + ' && rm ' + sub_zip)
@@ -807,11 +799,17 @@ def cj_data_unzip_city(cs, dir_cj):
     print('斗转星移')
     for src_cj_cs_yasuo in list_nojpg_file:
         moveFileToDir(src_cj_cs_yasuo, os.path.split(src_cj_cs_yasuo.replace(dir_cj_cs_yasuo, dir_cj_cs_todo))[0])
+    delDir(dir_cj_cs_yasuo)
     print('乾坤大挪移')
+    wx_jpgdir_lis = []
     for src_cj_yasuo in list_jpg_dir:
         time_dst_dir = getDate(str(src_cj_yasuo).split('/')[-1])
         if time_dst_dir is not None:
             mvDirToDir(src_cj_yasuo, os.path.join(dir_cj_cs_zip, time_dst_dir.split('-')[0], time_dst_dir))
+        else:
+            wx_jpgdir_lis.append(src_cj_yasuo)
+    for wx_jpgdir in wx_jpgdir_lis:
+        mvDirToDir(wx_jpgdir, os.path.split(wx_jpgdir.replace(dir_cj_cs_yasuo, dir_cj_cs_todo))[0])
     print('佛山清空脚')
     delDir(dir_cj_cs_yasuo)
 
@@ -849,8 +847,12 @@ def cj_data_classify_city(dir_zip):
         for i in v:
             dir_src = i
             time = [time for time in str(dir_src).split('/') if validate(time)][0]
-            dir_yasuo = os.path.join(os.getcwd(), 'chejian', k, 'yasuo', time, '')
-            shutil.move(dir_src, dir_yasuo)
+            if '车检' in dir_src:
+                dir_yasuo = os.path.join(os.getcwd(), 'chejian', k, 'yasuo', time, '')
+                shutil.move(dir_src, dir_yasuo)
+            elif '查验' in dir_src:
+                dir_yasuo = os.path.join(os.getcwd(), 'chayan', k, time, '')
+                shutil.move(dir_src, dir_yasuo)
     delDir(dir_zip)
 
 
@@ -864,9 +866,9 @@ def lisdir(zip_url, urllis, type='dir'):
     for url in os.listdir(zip_url):
         url = os.path.join(zip_url, url)
         if os.path.isdir(url) and type == 'dir' or type == 'file':
-            cs_key = getChengshi(url, qu, '区')
+            cs_key = getChengshi(url, shi, '市')
             if cs_key is None:
-                cs_key = getChengshi(url, shi, '市')
+                cs_key = getChengshi(url, qu, '区')
             if cs_key is None:
                 cs_key = getChengshi(url, sheng, '省')
             if cs_key is None:
@@ -888,9 +890,9 @@ def getChengshi(url, chengshi, suffix):
         for k in chengshi:
             # linux
             i = i.encode('utf-8')
-            if i[-3:] == suffix:
-                i = i[:-3]
-            if i in k and k[0:6] in i:
+            if i.endswith(suffix):
+                i = i.rstrip(suffix)
+            if k.startswith(i):
                 if suffix == '市':
                     return i
                 elif suffix == '区':
@@ -900,9 +902,9 @@ def getChengshi(url, chengshi, suffix):
 
 
 def getDate(time_dst_dir):
-    time_t1 = re.search(r'(\d{4}-\d{2}-\d{2})', time_dst_dir)
-    time_t2 = re.search(r'(\d{4}\d{2}\d{2})', str(time_dst_dir))
-    time_t3 = re.search(r'(\d{4}年\d{2}月\d{2}日)', str(time_dst_dir))
+    time_t1 = re.search(r'(\d{4}-\d{2}-\d{2})$', time_dst_dir)
+    time_t2 = re.search(r'(\d{4}\d{2}\d{2})$', str(time_dst_dir))
+    time_t3 = re.search(r'(\d{4}年\d{2}月\d{2}日)$', str(time_dst_dir))
     if time_t1 and validate(time_t1.group(1), 'zip'):
         return time_dst_dir
     elif time_t2 and validate(time_t2.group(1)):
@@ -935,15 +937,20 @@ def validate(date_text, type=None):
     return re
 
 
+def TimeStampToTime(timestamp):
+    timeStruct = time.localtime(timestamp)
+    return time.strftime('%Y-%m-%d %H:%M:%S', timeStruct)
+
+
 if __name__ == '__main__':
     # print('一、车检下载数据按城市移动到指定的文件夹中')
     # dir_zip = os.path.join(os.getcwd(), 'zip')
     # cj_data_classify_city(dir_zip)
     # print('二、解压各个城市中的压缩文件')
     # dir_cj = os.path.join(os.getcwd(), 'chejian')
-    dir_cj = '/data/data/chejian/chejian'
+    # # dir_cj = '/data/data/chejian/chejian'
     # for cs in os.listdir(dir_cj):
-    # cj_data_unzip_city('滨州', dir_cj)
+    #     cj_data_unzip_city(cs, dir_cj)
 
     # sqlPath = os.path.join(os.path.abspath(os.path.dirname(os.getcwd())), 'sql', '')
     # os.system('mkdir ' + sqlPath)
@@ -958,12 +965,21 @@ if __name__ == '__main__':
     # print('佛山清空脚')
     # delDir(os.path.join(os.getcwd(), 'yasuo'))
     # print('万花写轮眼')
-    # Filelist, list_jpg_dir = get_filelist(os.path.join(os.getcwd(), 'yasuo'), 'suffix')
-    # print('------------------输出文件-------------------------------')
-    # for i in Filelist:
-    #     print(i)
-    # print('------------------------------------------------------------')
+    Filelist, list_jpg_dir = get_filelist('/data/data/chejian/chejian/安顺/sql', 'suffix')
+    print('------------------输出文件-------------------------------')
+    for i in Filelist:
+        file_name = os.path.split(i)[-1]
+        if file_name.startswith('photo_info_') and 'notpass' not in file_name:
+            print(i)
+        elif file_name.startswith('photo_info_') and 'notpass' in file_name:
+            print(i)
+        elif file_name.startswith('vehicle_info_') and 'notpass' not in file_name:
+            print(i)
+        elif file_name.startswith('vehicle_info_') and 'notpass' in file_name:
+            print(i)
+    print('------------------------------------------------------------')
     # print('------------------输出jpg文件-------------------------------')
     # for i in list_jpg_dir:
     #     print(i)
+    #     print(TimeStampToTime(os.path.getmtime(i)))
     # print('------------------------------------------------------------')
