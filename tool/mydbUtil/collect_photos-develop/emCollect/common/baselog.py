@@ -1,8 +1,6 @@
 import logging
-import time
 import logging.handlers
 import os
-import shutil
 # 初始化设置
 
 logging.basicConfig(level=logging.INFO, format='[%(asctime)s%(levelname)s%(filename)s%(lineno)s]:%(message)s')

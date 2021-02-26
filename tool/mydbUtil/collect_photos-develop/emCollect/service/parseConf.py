@@ -9,19 +9,28 @@ from ..common.baselog import logger
 #     "cityConfDir":"CheJianConfig",
 #
 # }
-ROOT_TMP_DATA_PATH="../_Data_emCollect"
-ROOT_TMP_DATA_PHOTOS=ROOT_TMP_DATA_PATH+"/_Data_photos/"
+ROOT_TMP_DATA_PATH = "../_Data_emCollect"
+ROOT_TMP_DATA_PHOTOS = ROOT_TMP_DATA_PATH + "/_Data_photos/"
+
 
 class RawDataBaseInfo:
     def __init__(self):
+        """
+            RawDataBaseInfo
+            原始数据库信息
+            deviceType 设备类型
+            cityCode   城市代码
+            dateStr    导出日期
+            datePhotoDirs 照片日期
+            tmpRoot 临时图片存储目录
+        """
         self.deviceType = "None"
         self.cityCode = "None"
-        #// 导出日期
+        # // 导出日期
         self.dateStr = "None"
-        #// 照片日期   "误判数据会有多个目录" 而且日期一般和导出日期不同
-        self.datePhotoDirs =[]
+        # // 照片日期   "误判数据会有多个目录" 而且日期一般和导出日期不同
+        self.datePhotoDirs = []
         self.tmpRoot = ROOT_TMP_DATA_PHOTOS
-
 
 
 class DataSaveConf:
@@ -33,7 +42,7 @@ class DataSaveConf:
         self.videoDir = "videos"
         self.cityConfDir = "CheJianConfig"
 
-        self.tmpDir = ROOT_TMP_DATA_PHOTOS #ROOT_TMP_DATA_PATH+"/_Data_photos/"
+        self.tmpDir = ROOT_TMP_DATA_PHOTOS  # ROOT_TMP_DATA_PATH+"/_Data_photos/"
 
         self.videoPath = None
         self.photoPath = None
@@ -41,10 +50,12 @@ class DataSaveConf:
         self.baseCityInfo = RawDataBaseInfo()
 
         self.format()
-    def basePathRename(self,addName):
-        self.basePath = os.path.join(self.basePath, addName+"/")
+
+    def basePathRename(self, addName):
+        self.basePath = os.path.join(self.basePath, addName + "/")
         pass
-    def setBaseCityInfo(self,baseCityInfo):
+
+    def setBaseCityInfo(self, baseCityInfo):
         self.baseCityInfo = baseCityInfo
         self.printBaseInfo()
         return self
@@ -52,44 +63,45 @@ class DataSaveConf:
     def format(self):
         self.photoPath = self.basePath + "/" + self.baseCityInfo.deviceType + "/" + self.photoDir + "/" + self.baseCityInfo.cityCode
         self.cityConfPath = self.basePath + "/" + self.baseCityInfo.deviceType + "/" + self.cityConfDir + "/" \
-                            + self.baseCityInfo.cityCode+"/"+self.baseCityInfo.dateStr
+                            + self.baseCityInfo.cityCode + "/" + self.baseCityInfo.dateStr
 
-        self.videoPath = self.basePath +"/"+self.baseCityInfo.deviceType + "/" + self.videoDir+ "/"+self.baseCityInfo.cityCode
+        self.videoPath = self.basePath + "/" + self.baseCityInfo.deviceType + "/" + self.videoDir + "/" + self.baseCityInfo.cityCode
         return self
 
     def printBaseInfo(self):
         logger.info("self.baseCityInfo.deviceType:{},self.baseCityInfo.cityCode:{},self.baseCityInfo.dateStr:{}".
-              format(self.baseCityInfo.deviceType,self.baseCityInfo.cityCode,self.baseCityInfo.dateStr) )
+                    format(self.baseCityInfo.deviceType, self.baseCityInfo.cityCode, self.baseCityInfo.dateStr))
 
     def getNewDateBaseName(self):
 
         tableName = "emTest_{deviceType}_{cityCpde}_{dataStr}".format(deviceType=self.baseCityInfo.deviceType,
-                                                                      cityCpde=self.baseCityInfo.cityCode,dataStr= self.baseCityInfo.dateStr.replace("-",""))
+                                                                      cityCpde=self.baseCityInfo.cityCode,
+                                                                      dataStr=self.baseCityInfo.dateStr.replace("-",
+                                                                                                                ""))
         return tableName
 
     def getTmpVideoBase(self, isEncode=False):
         EncodeName = ""
         return self.tmpDir + "/" + EncodeName + self.baseCityInfo.deviceType + "/video/" + self.baseCityInfo.cityCode
 
-
-    def getTmpPhotoBase(self,isEncode=False):
+    def getTmpPhotoBase(self, isEncode=False):
         EncodeName = ""
         if isEncode:
-            EncodeName="encode/"
-        return  self.tmpDir + "/" +EncodeName+ self.baseCityInfo.deviceType + "/" + self.baseCityInfo.cityCode
+            EncodeName = "encode/"
+        return self.tmpDir + "/" + EncodeName + self.baseCityInfo.deviceType + "/" + self.baseCityInfo.cityCode
 
-    def getTmpPhotoPath(self,dateStr=""):
+    def getTmpPhotoPath(self, dateStr=""):
         dateDirName = ""
-        if len(dateStr) > 0 :
+        if len(dateStr) > 0:
             dateDirName = dateStr
         else:
             dateDirName = self.baseCityInfo.dateStr
 
         return self.getTmpPhotoBase() + "/" + dateDirName
 
-    def getTmpPhotoDecodePath(self,dateStr=""):
+    def getTmpPhotoDecodePath(self, dateStr=""):
         dateDirName = ""
-        if len(dateStr) > 0 :
+        if len(dateStr) > 0:
             dateDirName = dateStr
         else:
             dateDirName = self.baseCityInfo.dateStr
@@ -97,7 +109,6 @@ class DataSaveConf:
 
     def getTmpAlgConfPath(self):
         return "{}/{}/{}".format(self.tmpDir, self.baseCityInfo.deviceType, "CheJianConfig")
-
 
     def getRootVideoPath(self):
         return self.videoPath

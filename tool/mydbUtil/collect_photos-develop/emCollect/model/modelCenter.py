@@ -6,7 +6,7 @@ from .modelBase import *
 from ..common.baseDBOperate import DbConfigure
 from sqlalchemy import *
 from sqlalchemy.orm import Query
-from ..common.baselog import  *
+from ..common.baselog import *
 
 
 class OrmOperateDB:
@@ -35,9 +35,10 @@ class OrmOperateDB:
 
     def select(self, ormClazz):
         # orm.Query().filter()
-        #return orm.Query( self.sess.query(ormClazz) )
+        # return orm.Query( self.sess.query(ormClazz) )
         return self.sess.query(ormClazz)
-    def delete(self,ormClazz):
+
+    def delete(self, ormClazz):
         pass
 
     def getSession(self):
@@ -48,14 +49,14 @@ class OrmOperateDB:
         pass
 
 
-def insertMapperCityDataBaseName(sessOrm, mcObj,IsForce=True ):
-    li= sessOrm.select(MapperCityDataBaseName).filter(MapperCityDataBaseName.generateDate == mcObj.generateDate,
-                                                  MapperCityDataBaseName.cityCode == mcObj.cityCode,
-                                                  MapperCityDataBaseName.deviceType == mcObj.deviceType).all()
-    print( li)
-    if len(li  )  > 0 :
+def insertMapperCityDataBaseName(sessOrm, mcObj, IsForce=True):
+    li = sessOrm.select(MapperCityDataBaseName).filter(MapperCityDataBaseName.generateDate == mcObj.generateDate,
+                                                       MapperCityDataBaseName.cityCode == mcObj.cityCode,
+                                                       MapperCityDataBaseName.deviceType == mcObj.deviceType).all()
+    print(li)
+    if len(li) > 0:
         logger.error("记录已经存在")
-        if  not IsForce :
+        if not IsForce:
             return False
 
         # TODO 删除记录
@@ -63,85 +64,90 @@ def insertMapperCityDataBaseName(sessOrm, mcObj,IsForce=True ):
         sessOrm.select(MapperCityDataBaseName).filter(MapperCityDataBaseName.generateDate == mcObj.generateDate,
                                                       MapperCityDataBaseName.cityCode == mcObj.cityCode,
                                                       MapperCityDataBaseName.deviceType == mcObj.deviceType).delete()
-    #ToDO  插入记录
+    # ToDO  插入记录
     if sessOrm.insert(mcObj):
         logger.info("路径映射信息已成功插入")
 
+    return True
 
 
-    return  True
-
-def insertMapperCityDataBaseNameWuPan(sessOrm, mcObj,IsForce=True ):
-    li= sessOrm.select(MapperCityDataBaseNameWuPan).filter(MapperCityDataBaseNameWuPan.generateDate == mcObj.generateDate,
-                                                  MapperCityDataBaseNameWuPan.cityCode == mcObj.cityCode,
-                                                  MapperCityDataBaseNameWuPan.deviceType == mcObj.deviceType,
-                                                  MapperCityDataBaseNameWuPan.packageName ==mcObj.packageName ).all()
-    print( li)
-    if len(li  )  > 0 :
+def insertMapperCityDataBaseNameWuPan(sessOrm, mcObj, IsForce=True):
+    li = sessOrm.select(MapperCityDataBaseNameWuPan).filter(
+        MapperCityDataBaseNameWuPan.generateDate == mcObj.generateDate,
+        MapperCityDataBaseNameWuPan.cityCode == mcObj.cityCode,
+        MapperCityDataBaseNameWuPan.deviceType == mcObj.deviceType,
+        MapperCityDataBaseNameWuPan.packageName == mcObj.packageName).all()
+    print(li)
+    if len(li) > 0:
         logger.error("记录已经存在")
-        if  not IsForce :
+        if not IsForce:
             return False
 
         # TODO 删除记录
         logger.info("正在 删除已存在的记录")
-        sessOrm.select(MapperCityDataBaseNameWuPan).filter(MapperCityDataBaseNameWuPan.generateDate == mcObj.generateDate,
-                                                      MapperCityDataBaseNameWuPan.cityCode == mcObj.cityCode,
-                                                      MapperCityDataBaseNameWuPan.deviceType == mcObj.deviceType,
-                                                      MapperCityDataBaseNameWuPan.packageName ==mcObj.packageName).delete()
-    #ToDO  插入记录
+        sessOrm.select(MapperCityDataBaseNameWuPan).filter(
+            MapperCityDataBaseNameWuPan.generateDate == mcObj.generateDate,
+            MapperCityDataBaseNameWuPan.cityCode == mcObj.cityCode,
+            MapperCityDataBaseNameWuPan.deviceType == mcObj.deviceType,
+            MapperCityDataBaseNameWuPan.packageName == mcObj.packageName).delete()
+    # ToDO  插入记录
     if sessOrm.insert(mcObj):
         logger.info("路径映射信息已成功插入")
 
-    return  True
+    return True
 
-def selectMapperCityDataBaseName(sessOrm  , cityName="",cityPinYin="",cityCode="",startTime="",deviceType=""):
-    query =sessOrm.select(MapperCityDataBaseName)
+
+def selectMapperCityDataBaseName(sessOrm, cityName="", cityPinYin="", cityCode="", startTime="", deviceType=""):
+    query = sessOrm.select(MapperCityDataBaseName)
     if len(cityCode) > 0:
-        query=query.filter(MapperCityDataBaseName.cityCode==cityCode)
+        query = query.filter(MapperCityDataBaseName.cityCode == cityCode)
     if len(startTime) > 0:
-        query=query.filter(MapperCityDataBaseName.generateDate >= startTime)
+        query = query.filter(MapperCityDataBaseName.generateDate >= startTime)
     if len(deviceType) > 0:
-        query=query.filter(MapperCityDataBaseName.deviceType == deviceType)
+        query = query.filter(MapperCityDataBaseName.deviceType == deviceType)
     if len(cityPinYin) > 0:
-        query=query.filter(MapperCityDataBaseName.cityPinYin.like( cityPinYin+"%") )
-    if len(cityName) > 0 :
-        query=query.filter(MapperCityDataBaseName.cityName.like(cityName+"%") )
+        query = query.filter(MapperCityDataBaseName.cityPinYin.like(cityPinYin + "%"))
+    if len(cityName) > 0:
+        query = query.filter(MapperCityDataBaseName.cityName.like(cityName + "%"))
 
     return query.limit(20).all()
 
-def selectMapperCityDataBaseNameWuPan(sessOrm  ,cityCode="",generateDate="",packageName=""):
-    query =sessOrm.select(MapperCityDataBaseNameWuPan)
+
+def selectMapperCityDataBaseNameWuPan(sessOrm, cityCode="", generateDate="", packageName=""):
+    query = sessOrm.select(MapperCityDataBaseNameWuPan)
     if len(cityCode) > 0:
-        query=query.filter(MapperCityDataBaseNameWuPan.cityCode==cityCode)
+        query = query.filter(MapperCityDataBaseNameWuPan.cityCode == cityCode)
     if len(generateDate) > 0:
-        query=query.filter(MapperCityDataBaseNameWuPan.generateDate == generateDate)
-    if len(packageName) :
+        query = query.filter(MapperCityDataBaseNameWuPan.generateDate == generateDate)
+    if len(packageName):
         query = query.filter(MapperCityDataBaseNameWuPan.packageName == packageName)
 
-    objlist= query.order_by( desc(MapperCityDataBaseNameWuPan.number) ).limit(1).all()
+    objlist = query.order_by(desc(MapperCityDataBaseNameWuPan.number)).limit(1).all()
 
     # for item in objlist:
     #     print("@@@:{}",item.number)
 
-    if len(objlist ) > 0:
-        print("#####################################:"+objlist[0].number)
-        return True,objlist[0].number
+    if len(objlist) > 0:
+        print("#####################################:" + objlist[0].number)
+        return True, objlist[0].number
     else:
-        return False,""
-        #print(objlist[0]["number"])
+        return False, ""
+        # print(objlist[0]["number"])
 
     ######str(int("14") + 1)
 
+
 def getNextWuPanNumber(sessOrm, cityCode, generateDate, packageName):
-    isOk,num = selectMapperCityDataBaseNameWuPan(sessOrm, cityCode, generateDate, packageName)
-    if isOk:  #改包已经导过  本次是覆盖操作
+    isOk, num = selectMapperCityDataBaseNameWuPan(sessOrm, cityCode, generateDate, packageName)
+    if isOk:  # 改包已经导过  本次是覆盖操作
         logger.warn("包已经导过, num is:{} ".format(num))
         return num
 
     isOk, num = selectMapperCityDataBaseNameWuPan(sessOrm, cityCode, generateDate, "")
-    if isOk :
+    if isOk:
         return "{:0>2d}".format(int(num) + 1)
     return "00"
+
 
 def test_ormOperate(sess):
     saveItem = MapperCityDataBaseName(mid=0, index="00",
@@ -157,24 +163,24 @@ def test_ormOperate(sess):
     for item in objlist:
         print(item.toString())
 
+
 def test_wupan(sess):
     # isOk, num = selectMapperCityDataBaseNameWuPan(sess, cityCode="4419", generateDate="2020-07-20",
     #                      packageName="emData_chejian_4419_20210114140321_CJWP.tar.gz")
     # print("isok:", isOk, "num:", num)
 
-    num = getNextWuPanNumber(sess, cityCode ="4419", generateDate="2020-07-20", packageName="emData_chejian_4419_20210114140321_CJWP.tar.gz")
-    print("num:",num)
+    num = getNextWuPanNumber(sess, cityCode="4419", generateDate="2020-07-20",
+                             packageName="emData_chejian_4419_20210114140321_CJWP.tar.gz")
+    print("num:", num)
 
-    num = getNextWuPanNumber(sess, cityCode ="4419", generateDate="2020-07-20", packageName="emData_chejian_4419_202101141240321_CJWP.tar.gz")
-    print( "num:", num)
-
+    num = getNextWuPanNumber(sess, cityCode="4419", generateDate="2020-07-20",
+                             packageName="emData_chejian_4419_202101141240321_CJWP.tar.gz")
+    print("num:", num)
 
 
 if __name__ == '__main__':
     # mysql://root:em-data-9527@192.168.20.115:3306/dongguan_test?charset=utf-8
     # mysql://root:em-data-9527@192.168.20.115:3306/dongguan_test?charset=utf8
     sess = OrmOperateDB('./conf/db.conf.json')
-    #test_ormOperate(sess)
+    # test_ormOperate(sess)
     test_wupan(sess)
-
-

@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
+"""
+@File   :JsonConfig.py
+@Time   :2021/2/8 15:21
+@Author :Chen
+@Software:PyCharm
+"""
 import configparser
 
 
 def setConfigIni(filename, liArgs):
     handle = configparser.ConfigParser()
     handle.read(filename)
-    # callback(config,liArgs)
 
     a = handle.get("alembic", "sqlalchemy.url")
     print(a)
@@ -19,9 +24,9 @@ def setConfigIni(filename, liArgs):
 
 def test_config_ini():
     config = configparser.ConfigParser()
-    config.read('./alembic.ini')
-    # a = config.get("alembic", "sqlalchemy.url")
-    print(config.get('alembic', 'script_location'))
+    config.read(r'E:\JetBrains\PycharmProjects\untitled\tool\mydbUtil\collect_photos-develop\alembic.ini')
+    a = config.get("alembic", "sqlalchemy.url")
+    print(a)
 
 
 if __name__ == '__main__':

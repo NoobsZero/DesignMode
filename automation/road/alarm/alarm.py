@@ -9,29 +9,7 @@ import datetime
 import time
 import requests
 
-
-def get_time_stamp13(datetime_obj):
-    # 生成13时间戳   eg:1557842280000
-    datetime_obj = datetime.datetime.strptime(datetime_obj, '%Y-%m-%d %H:%M:%S.%f')
-    # datetime_str = datetime.datetime.strftime(datetime_obj, '%Y-%m-%d %H:%M:%S.%f')
-    # # 10位，时间点相当于从1.1开始的当年时间编号
-    date_stamp = str(int(time.mktime(datetime_obj.timetuple())))
-    # # 3位，微秒
-    data_microsecond = str("%06d" % datetime_obj.microsecond)[0:3]
-    date_stamp = date_stamp + data_microsecond
-    return int(date_stamp)
-
-
-def get_stamp13_time(date_stamp):
-    d = datetime.datetime.fromtimestamp(date_stamp / 1000)
-    date_str = d.strftime("%Y-%m-%d %H:%M:%S.%f")
-    return date_str
-
-
-def get_stamp13():
-    t = time.time()
-    return int(round(t * 1000))
-
+from tool.baseUtil.getBaseUtil import get_stamp13
 
 if __name__ == '__main__':
     yesterday_time = datetime.datetime.strptime(

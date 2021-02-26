@@ -1,7 +1,8 @@
 import json
 
-from sqlalchemy import Column, String, Date, Integer, Text,DATETIME
+from sqlalchemy import Column, String, Date, Integer, Text, DATETIME
 from .modelBase import *
+
 
 # 定义User对象:
 class MapperCityDataBaseName(Base):
@@ -18,13 +19,13 @@ class MapperCityDataBaseName(Base):
     index = Column(String(2))
     subPath = Column(String(128))
     otherInfo = Column(Text())
-    inDbTime  = Column(DATETIME())
+    inDbTime = Column(DATETIME())
     deviceType = Column(String(20))
     algConfPath = Column(String(128))
-    photoPath   = Column(String(128))
+    photoPath = Column(String(128))
 
     def __init__(self, mid=0, dbname="", cityCode="", cityName="", cityPinYin="", generateDate="", index="", subPath="",
-                 otherinfo="",inDbTime="",deviceType="chejian",algConfPath="",photoPath=""):
+                 otherinfo="", inDbTime="", deviceType="chejian", algConfPath="", photoPath=""):
         self.generateDate = generateDate
         self.mID = mid
 
@@ -36,11 +37,11 @@ class MapperCityDataBaseName(Base):
         self.photoPath = photoPath
         self.deviceType = deviceType
         self.inDbTime = inDbTime
-        self.otherInfo= otherinfo
-        self.subPath = subPath
-        self.dbname =dbname
         self.otherInfo = otherinfo
-        #self.inDbTime =
+        self.subPath = subPath
+        self.dbname = dbname
+        self.otherInfo = otherinfo
+        # self.inDbTime =
 
     def generateDbName(self, baseName):
         self.dbname = baseName
@@ -59,8 +60,6 @@ class MapperCityDataBaseName(Base):
         print(self.__dict__)
 
 
-
-
 # 定义User对象:
 class MapperCityDataBaseNameWuPan(Base):
     # 表的名字:
@@ -73,21 +72,22 @@ class MapperCityDataBaseNameWuPan(Base):
     cityName = Column(String(32))
     cityPinYin = Column(String(32))
     generateDate = Column(Date())
-    #设备编号
+    # 设备编号
     index = Column(String(2))
     subPath = Column(String(128))
     otherInfo = Column(Text())
-    inDbTime  = Column(DATETIME())
+    inDbTime = Column(DATETIME())
     deviceType = Column(String(20))
     algConfPath = Column(String(128))
-    photoPath   = Column(String(128))
-    #压缩包名称
+    photoPath = Column(String(128))
+    # 压缩包名称
     packageName = Column(String(128))
-    #number  导入编号
-    number  = Column(String(2))
+    # number  导入编号
+    number = Column(String(2))
 
     def __init__(self, mid=0, dbname="", cityCode="", cityName="", cityPinYin="", generateDate="", index="", subPath="",
-                 otherinfo="",inDbTime="",deviceType="chejian",algConfPath="",photoPath="",packageName="" , number="00" ):
+                 otherinfo="", inDbTime="", deviceType="chejian", algConfPath="", photoPath="", packageName="",
+                 number="00"):
         self.generateDate = generateDate
         self.mID = mid
 
@@ -99,13 +99,13 @@ class MapperCityDataBaseNameWuPan(Base):
         self.photoPath = photoPath
         self.deviceType = deviceType
         self.inDbTime = inDbTime
-        self.otherInfo= otherinfo
+        self.otherInfo = otherinfo
         self.subPath = subPath
-        self.dbname =dbname
+        self.dbname = dbname
         self.otherInfo = otherinfo
 
         self.packageName = packageName
-        self.number      = number
+        self.number = number
 
     def generateDbName(self, baseName):
         self.dbname = baseName

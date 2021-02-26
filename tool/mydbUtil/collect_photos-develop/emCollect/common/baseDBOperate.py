@@ -3,6 +3,7 @@ import pymysql
 from .baseConfig import BaseConfig
 from .baselog import logger
 
+
 class DbConfigure:
     def __init__(self, configPath):
         self.host = "127.0.0.1"
@@ -15,8 +16,8 @@ class DbConfigure:
         self.InitFromConfigure(self.objMap)
 
     def getSource(self):
-        return  "mysql://{user}:{password}@{ipaddr}:{port}/{dbname}?charset=utf8".\
-            format(user=self.user,password=self.passwd,ipaddr=self.host,port=self.port,dbname=self.db)
+        return "mysql://{user}:{password}@{ipaddr}:{port}/{dbname}?charset=utf8". \
+            format(user=self.user, password=self.passwd, ipaddr=self.host, port=self.port, dbname=self.db)
 
     def InitFromConfigure(self, dbconf):
         self.host = dbconf["dbHost"]
@@ -24,6 +25,7 @@ class DbConfigure:
         self.passwd = dbconf["dbPass"]
         self.db = dbconf["dbName"]
         return True
+
 
 class OperateDB:
     def __init__(self, configPath, isUsedDB=True, renameDb=""):
@@ -91,9 +93,9 @@ class OperateDB:
 def createDataBase(configPath, dbname=""):
     try:
         odb = OperateDB(configPath, isUsedDB=False)
-        if  len(dbname) == 0:
+        if len(dbname) == 0:
             dbname = odb.dbconf.db
-        val = odb.insert("create database IF NOT EXISTS " + dbname  +" default charset utf8 collate utf8_general_ci ")
+        val = odb.insert("create database IF NOT EXISTS " + dbname + " default charset utf8 collate utf8_general_ci ")
     except Exception as e:
         val = False
         logger.error("数据库创建失败:[{}]".format(dbname))
@@ -110,6 +112,7 @@ def test_select():
 
 def test_create():
     createDataBase("./conf/db.conf.json", "cheajian_test_123")
+
 
 if __name__ == '__main__':
     test_select()

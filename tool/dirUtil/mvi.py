@@ -561,11 +561,16 @@ cs_id = {'110000': '北京市', '110100': '北京市', '110101': '东城区', '1
          '820000': '澳门特别行政区'}
 
 
+def path_remake(path):
+    return path.replace(' ', '\ ').replace('(', '\(').replace(')', '\)').replace('&', '\&')
+
+
 def mvDirToDir(root_src_dir, root_dst_dir):
     """
         移动目录下所有文件到目录
     :param root_src_dir: 源目录
     :param root_dst_dir: 指定目录
+
     """
     root_src_dir = os.path.join(os.getcwd(), root_src_dir, '')
     root_dst_dir = os.path.join(os.getcwd(), root_dst_dir, '')
@@ -582,7 +587,8 @@ def mvDirToDir(root_src_dir, root_dst_dir):
                 if os.path.samefile(src_file, dst_file):
                     continue
                 os.remove(dst_file)
-            shutil.move(src_file, dst_dir)
+            shutil.move(src_file, dst_file)
+    delDir(root_src_dir)
 
 
 def moveFileToDir(root_src_file, root_dst_dir):
@@ -598,7 +604,8 @@ def moveFileToDir(root_src_file, root_dst_dir):
         root_dst_lis = get_filelist(root_dst_dir)
         if root_dst_file in root_dst_lis:
             new_i = os.path.split(root_dst_file)
-            new_root_src_file = os.path.join(new_i[0], os.path.split(os.path.split(root_dst_file)[0])[-1] + '_' + new_i[-1])
+            new_root_src_file = os.path.join(new_i[0],
+                                             os.path.split(os.path.split(root_dst_file)[0])[-1] + '_' + new_i[-1])
             os.renames(root_src_file, new_root_src_file)
         else:
             shutil.move(root_src_file, root_dst_file)
@@ -624,25 +631,25 @@ def get_filelist(dir, fileCondition='', topdown=True):
     for home, dirs, files in os.walk(dir, topdown=topdown):
         for filename in files:
             # 文件名列表，包含完整路径
-            if fileCondition is 'zip':
+            if fileCondition == 'zip':
                 if filename.endswith('.rar') or filename.endswith('.gz') or filename.endswith('.tar') or \
                         os.path.splitext(filename)[-1].endswith('.z', 0, 2) and (
                         'sql' not in filename):
                     Filelist.append(os.path.join(home, filename))
-            elif fileCondition is 'sql':
+            elif fileCondition == 'sql':
                 if filename.endswith('.sql'):
                     Filelist.append(os.path.join(home, filename))
-            elif fileCondition is 'rar':
+            elif fileCondition == 'rar':
                 if filename[-3:] == 'rar':
                     Filelist.append(os.path.join(home, filename))
-            elif fileCondition is 'suffix':
+            elif fileCondition == 'suffix':
                 if os.path.splitext(filename)[1] in suffix or filename[-3:] in suffix:
                     Filelist.append(os.path.join(home, filename))
                 elif home not in list_jpg_dir:
                     list_jpg_dir.append(home)
-            elif fileCondition is '':
+            elif fileCondition == '':
                 Filelist.append(os.path.join(home, filename))
-    if fileCondition is 'suffix':
+    if fileCondition == 'suffix':
         return Filelist, list_jpg_dir
     else:
         return Filelist
@@ -660,7 +667,7 @@ def delDir(dirPath):
                 os.remove(src_file)
     for root, dirs, files in os.walk(dirPath, topdown=False):
         if not os.listdir(root):
-            os.system('rmdir ' + root)
+            os.system('rmdir ' + path_remake(root))
 
 
 def getZipSubsection(sc, lis):
@@ -678,45 +685,48 @@ def decompressionZIP(dirs, sqlPath):
     :param dirs: 扫描目录
     :param sqlPath: sql文件目录
     """
-    if not os.path.isdir(sqlPath):
-        os.system('mkdir ' + sqlPath)
-    zip = get_filelist(dirs, 'zip')
-    for i in zip:
-        new_file_name = i.split('/')[-1]
-        old_file_name = i.split('/')[-1]
-        for tu in ['(', ')', ' ', '-', '#', ';', '$', '!', '@', '&', '\\', '"']:
-            new_file_name = new_file_name.replace(tu, '_')
-        new_file_name = i.replace(old_file_name, new_file_name)
-        if i != new_file_name:
-            os.system('mv ' + "'" + i + "'" + ' ' + new_file_name)
-        i = new_file_name
-        pathname, filename = os.path.split(i)
-        newpath = os.path.join(pathname, filename.split('.')[0], '')
-        print(newpath)
-        if not os.path.isdir(newpath):
-            os.system('mkdir ' + newpath)
-        os.system('echo ' + i + ' ... ...')
-        if filename.endswith('.gz') or filename.endswith('tar'):
-            os.system('tar -xf ' + i + ' -C ' + newpath + ' && rm ' + i)
-        elif filename.endswith('zip'):
-            lis_sub_zip = getZipSubsection(filename, zip)
-            if len(lis_sub_zip) > 0:
-                i_pathname, i_filename = os.path.split(i)
-                new_i = os.path.join(i_pathname[0], 'all_' + i_filename[-1])
-                os.system('mv ' + i + ' ' + new_i)
-                for sub_zip in lis_sub_zip:
-                    os.system('cat ' + sub_zip + ' > ' + i + ' && rm ' + sub_zip)
-                os.system('unzip -O gbk ' + new_i + ' -d ' + newpath + ' && rm ' + new_i)
-            else:
-                os.system('unzip -O gbk ' + i + ' -d ' + newpath + ' && rm ' + i)
-        elif filename.endswith('.rar') and ('.part' not in filename):
-            os.system('rar e -o+ -y ' + i + ' -C ' + newpath + ' && rm ' + i)
-        print(i)
-        os.system('echo ' + i + ' ok')
-        todoList = get_filelist(dirs, fileCondition='sql')
-        for sqldir in todoList:
-            moveFileToDir(sqldir, sqlPath)
-    delDir(dirs)
+    index = 0
+    while True:
+        index += 1
+        if not os.path.isdir(sqlPath):
+            os.system('mkdir ' + sqlPath)
+        zip = get_filelist(dirs, 'zip')
+        for i in zip:
+            new_file_name = i.split('/')[-1]
+            old_file_name = i.split('/')[-1]
+            for tu in ['(', ')', ' ', '-', '#', ';', '$', '!', '@', '&', '\\', '"']:
+                new_file_name = new_file_name.replace(tu, '_')
+            new_file_name = i.replace(old_file_name, new_file_name)
+            if i != new_file_name:
+                os.system('mv ' + "'" + i + "'" + ' ' + new_file_name)
+            i = new_file_name
+            pathname, filename = os.path.split(i)
+            newpath = os.path.join(pathname, filename.split('.')[0], '')
+            if not os.path.isdir(newpath):
+                os.system('mkdir ' + newpath)
+            os.system('echo ' + i + ' ... ...')
+            if filename.endswith('.gz') or filename.endswith('tar'):
+                os.system('tar -xf ' + i + ' -C ' + newpath + ' && rm ' + i)
+            elif filename.endswith('zip'):
+                lis_sub_zip = getZipSubsection(filename, zip)
+                if len(lis_sub_zip) > 0:
+                    i_pathname, i_filename = os.path.split(i)
+                    new_i = os.path.join(i_pathname[0], 'all_' + i_filename[-1])
+                    os.system('mv ' + i + ' ' + new_i)
+                    for sub_zip in lis_sub_zip:
+                        os.system('cat ' + sub_zip + ' > ' + i + ' && rm ' + sub_zip)
+                    os.system('unzip -O gbk ' + new_i + ' -d ' + newpath + ' && rm ' + new_i)
+                else:
+                    os.system('unzip -O gbk ' + i + ' -d ' + newpath + ' && rm ' + i)
+            elif filename.endswith('.rar') and ('.part' not in filename):
+                os.system('rar e -o+ -y ' + i + ' -C ' + newpath + ' && rm ' + i)
+            os.system('echo ' + i + ' ok')
+            todoList = get_filelist(dirs, fileCondition='sql')
+            for sqldir in todoList:
+                moveFileToDir(sqldir, sqlPath)
+        delDir(dirs)
+        if len(get_filelist(dirs, 'zip')) == 0 or index >= 3:
+            break
 
 
 sheng = [cs_id[i] for i in cs_id if i[-4:] == '0000']
@@ -833,9 +843,6 @@ def cj_data_classify_city(dir_zip):
         ......
         ）
     """
-    # 解决linux字符串问题
-    reload(sys)
-    sys.setdefaultencoding('utf-8')
     urllis_dir = lisdir(dir_zip, {})
     urllis_file = lisdir(dir_zip, {}, 'file')
     for file_key in urllis_file:
@@ -849,10 +856,22 @@ def cj_data_classify_city(dir_zip):
             time = [time for time in str(dir_src).split('/') if validate(time)][0]
             if '车检' in dir_src:
                 dir_yasuo = os.path.join(os.getcwd(), 'chejian', k, 'yasuo', time, '')
-                shutil.move(dir_src, dir_yasuo)
+                if os.path.isdir(dir_src):
+                    mvDirToDir(dir_src, dir_yasuo)
+                else:
+                    shutil.move(dir_src, dir_yasuo)
             elif '查验' in dir_src:
                 dir_yasuo = os.path.join(os.getcwd(), 'chayan', k, time, '')
-                shutil.move(dir_src, dir_yasuo)
+                if os.path.isdir(dir_src):
+                    mvDirToDir(dir_src, dir_yasuo)
+                else:
+                    shutil.move(dir_src, dir_yasuo)
+            elif '误判' in dir_src or 'wupan' in dir_src:
+                dir_yasuo = os.path.join(os.getcwd(), 'wupan', k, time, '')
+                if os.path.isdir(dir_src):
+                    mvDirToDir(dir_src, dir_yasuo)
+                else:
+                    shutil.move(dir_src, dir_yasuo)
     delDir(dir_zip)
 
 
@@ -871,12 +890,12 @@ def lisdir(zip_url, urllis, type='dir'):
                 cs_key = getChengshi(url, qu, '区')
             if cs_key is None:
                 cs_key = getChengshi(url, sheng, '省')
-            if cs_key is None:
+            if cs_key is None and os.path.isdir(url):
                 urllis = lisdir(url, urllis, type)
             else:
-                if cs_key in urllis:
+                if cs_key is not None and cs_key in urllis:
                     urllis[cs_key].append(url)
-                else:
+                elif cs_key is not None:
                     urllis[cs_key] = [url]
     return urllis
 
@@ -888,8 +907,6 @@ def getChengshi(url, chengshi, suffix):
     seg_list = jieba.lcut(url)
     for i in seg_list:
         for k in chengshi:
-            # linux
-            i = i.encode('utf-8')
             if i.endswith(suffix):
                 i = i.rstrip(suffix)
             if k.startswith(i):
@@ -946,12 +963,11 @@ if __name__ == '__main__':
     # print('一、车检下载数据按城市移动到指定的文件夹中')
     # dir_zip = os.path.join(os.getcwd(), 'zip')
     # cj_data_classify_city(dir_zip)
-    # print('二、解压各个城市中的压缩文件')
-    # dir_cj = os.path.join(os.getcwd(), 'chejian')
-    # # dir_cj = '/data/data/chejian/chejian'
-    # for cs in os.listdir(dir_cj):
-    #     cj_data_unzip_city(cs, dir_cj)
-
+    print('二、解压各个城市中的压缩文件')
+    dir_cj = os.path.join(os.getcwd(), 'chejian')
+    # dir_cj = '/data/data/chejian/chejian'
+    for cs in os.listdir(dir_cj):
+        cj_data_unzip_city(cs, dir_cj)
     # sqlPath = os.path.join(os.path.abspath(os.path.dirname(os.getcwd())), 'sql', '')
     # os.system('mkdir ' + sqlPath)
     # moveFileToDir(os.getcwd(), sqlPath, 'sql')
@@ -965,19 +981,19 @@ if __name__ == '__main__':
     # print('佛山清空脚')
     # delDir(os.path.join(os.getcwd(), 'yasuo'))
     # print('万花写轮眼')
-    Filelist, list_jpg_dir = get_filelist('/data/data/chejian/chejian/安顺/sql', 'suffix')
-    print('------------------输出文件-------------------------------')
-    for i in Filelist:
-        file_name = os.path.split(i)[-1]
-        if file_name.startswith('photo_info_') and 'notpass' not in file_name:
-            print(i)
-        elif file_name.startswith('photo_info_') and 'notpass' in file_name:
-            print(i)
-        elif file_name.startswith('vehicle_info_') and 'notpass' not in file_name:
-            print(i)
-        elif file_name.startswith('vehicle_info_') and 'notpass' in file_name:
-            print(i)
-    print('------------------------------------------------------------')
+    # Filelist, list_jpg_dir = get_filelist('/data/data/chejian/chejian/安顺/sql', 'suffix')
+    # print('------------------输出文件-------------------------------')
+    # for i in Filelist:
+    #     file_name = os.path.split(i)[-1]
+    #     if file_name.startswith('photo_info_') and 'notpass' not in file_name:
+    #         print(i)
+    #     elif file_name.startswith('photo_info_') and 'notpass' in file_name:
+    #         print(i)
+    #     elif file_name.startswith('vehicle_info_') and 'notpass' not in file_name:
+    #         print(i)
+    #     elif file_name.startswith('vehicle_info_') and 'notpass' in file_name:
+    #         print(i)
+    # print('------------------------------------------------------------')
     # print('------------------输出jpg文件-------------------------------')
     # for i in list_jpg_dir:
     #     print(i)

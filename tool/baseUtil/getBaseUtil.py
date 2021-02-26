@@ -6,21 +6,25 @@
 @Software:PyCharm
 """
 import base64  # 想将字符串转编码成base64,要先将字符串转换成二进制数据
-import datetime
 import os
-import re
-import shutil
 import sys
-import time
 import uuid
-
 import jieba
-from dateutil.parser import parse
 from xpinyin import Pinyin
+from tool.myconfigUtil.JsonConfig import JsonConfig
 from tool.mylogUtil.baselog import logger
 
 
 def get_encode_base64(k, v=None):
+    """
+        密码加密
+    Args:
+        k: 密码
+        v: 
+
+    Returns:
+
+    """
     try:
         if v is not None:
             data = k + '/' + v
@@ -36,6 +40,14 @@ def get_encode_base64(k, v=None):
 
 
 def get_decode_base64(v):
+    """
+        密码解密
+    Args:
+        v: 加密密码
+
+    Returns:
+
+    """
     decodeData = base64.b64decode(v).decode('utf-8')
     return str(decodeData).split('/')[-1]
 
@@ -64,104 +76,51 @@ def getPinyin(value=""):
     return ret
 
 
-def getLocalTime(timestamp=time.localtime(), timeformat="%Y-%m-%d %H:%M:%S"):
+def is_all_chinese(sirs):
     """
-    获取当前时间
+        判断是否是中文
+    :param sirs:
+    :return:
+    """
+    for _char in sirs:
+        if not '\u4e00' <= _char <= '\u9fa5':
+            return False
+    return True
+
+
+def is_number(s):
+    """
+        判断字符串是否为数字
     Args:
-        timeformat: 时间格式
+        s: 字符串
 
-    Returns:格式化的时间
+    Returns:bool
 
-    """
-    return time.strftime(timeformat, timestamp)
-
-
-def TimeStampToTime(timestamp, timeformat="%Y-%m-%d %H:%M:%S"):
-    """
-    时间戳转换时间
-    Args:
-        timestamp: 时间戳
-        timeformat: 时间格式
-
-    Returns: 格式化的时间
-
-    """
-    timeStruct = time.localtime(timestamp)
-    return getLocalTime(timestamp=timeStruct, timeformat=timeformat)
-
-
-def getDate(time_dst_dir):
-    time_t1 = re.search(r'(\d{4}-\d{2}-\d{2})$', time_dst_dir)
-    time_t2 = re.search(r'(\d{4}\d{2}\d{2})$', str(time_dst_dir))
-    time_t3 = re.search(r'(\d{4}年\d{2}月\d{2}日)$', str(time_dst_dir))
-    if time_t1 and validate(time_t1.group(1)):
-        return time_dst_dir
-    elif time_t2 and validate(time_t2.group(1)):
-        return parse(time_t2.group(1)).strftime('%Y-%m-%d')
-    elif time_t3:
-        return parse(re.sub(r'\D', "", time_t3.group(1))).strftime('%Y-%m-%d')
-    else:
-        return None
-
-
-def validate(date_text, type='%Y-%m-%d'):
-    """
-        时间检验，注意文件时间要符合日期规则超出无效！
-    :param type:
-    :param date_text: 字符串
-    :return: boolean
     """
     try:
-        datetime.datetime.strptime(date_text, type)
-        re = True
+        float(s)
+        return True
     except ValueError:
-        re = False
-    return re
-
-
-def checkDir(targetPath):
-    """
-    检查目录
-    :param targetPath:目录路径
-    :return Flag:存在 0，创建 1， 创建失败 -1
-    """
-    Flag = 0
-    if os.path.isdir(targetPath):
         pass
-    else:
-        try:
-            os.makedirs(targetPath)
-        except Exception as e:
-            logger.error("文件夹创建失败{}".format(targetPath))
-            logger.error("error:{}".format(e))
-            return -1
-        Flag = 1
-    return Flag
 
+    try:
+        import unicodedata
+        unicodedata.numeric(s)
+        return True
+    except (TypeError, ValueError):
+        pass
 
-def moveTarget2Dir(targetFile, dirPath):
-    """
-    移动文件到指定目录
-    :param targetFile:文件路径
-    :param dirPath:目录路径
-    :return Flag: bool
-    """
-    Flag = False
-    if os.path.exists(targetFile):
-        if checkDir(dirPath) >= 0:
-            shutil.move(targetFile, dirPath)
-            Flag = True
-    return Flag
+    return False
 
 
 class BaseProgressBar:
     """
-    进度条
-        列：
-        count = 8888888
-        handle = BaseProgressBar(count)
-        for i in range(count):
-            handle.progressBarFlush(i)
+        进度条
+            列：
+            count = 8888888
+            handle = BaseProgressBar(count)
+            for i in range(count):
+                handle.progressBarFlush(i)
     """
 
     def __init__(self, count):
@@ -210,31 +169,60 @@ def getChengshi(url, chengshi, suffix):
                 elif suffix == '省':
                     return i
 
-sheng = [cs_id[i] for i in cs_id if i[-4:] == '0000']
-shi = [cs_id[i] for i in cs_id if i[-4:] != '0000' and i[-2:] == '00']
-qu = [cs_id[i] for i in cs_id if i[-2:] != '00']
+
+class CsID:
+    def __init__(self, filePath=r'E:\JetBrains\PycharmProjects\untitled\tool\baseUtil\csId.json'):
+        self.cityConfPath = filePath
+        self.cityMapper = {}
+        self.readCityName()
+
+    def readCityName(self):
+        self.cityMapper = JsonConfig().loadConf(self.cityConfPath).getValue(
+            'cs_id')
+
+    def getSheng(self):
+        return [self.cityMapper[i] for i in self.cityMapper if i[-4:] == '0000']
+
+    def getShi(self):
+        return [self.cityMapper[i] for i in self.cityMapper if i[-4:] != '0000' and i[-2:] == '00']
+
+    def getQu(self):
+        return [self.cityMapper[i] for i in self.cityMapper if i[-2:] != '00']
+
+    def getCityName(self, citycode):
+        cityName = ""
+        try:
+            cityName = self.cityMapper[citycode]
+        except KeyError:
+            logger.error("未知的citycode：[{}]".format(citycode))
+        return cityName
 
 
-def lisdir(zip_url, urllis, type='dir'):
+def getCslisdir(zip_url, urlLis=None, fileType='dir'):
     """
         使用递归算法根据城市（区、市、省）匹配字符串中相应的城市并返回结果
     :param zip_url: 下载数据所在地址
-    :param urllis: key：城市名 valuse：文件夹地址
-    :return: urllis
+    :param urlLis: key：城市名 valuse：文件夹地址
+    :param fileType: 判断文件类型
+    :return: urlLis
     """
+    if urlLis is None:
+        urlLis = {}
     for url in os.listdir(zip_url):
         url = os.path.join(zip_url, url)
-        if os.path.isdir(url) and type == 'dir' or type == 'file':
-            cs_key = getChengshi(url, shi, '市')
+        if os.path.isdir(url) and fileType == 'dir' or fileType == 'file' and os.path.isfile(url):
+            cs_key = getChengshi(url, CsID().getShi(), '市')
             if cs_key is None:
-                cs_key = getChengshi(url, qu, '区')
+                cs_key = getChengshi(url, CsID().getQu(), '区')
             if cs_key is None:
-                cs_key = getChengshi(url, sheng, '省')
+                cs_key = getChengshi(url, CsID().getSheng(), '省')
             if cs_key is None:
-                urllis = lisdir(url, urllis, type)
+                urlLis = getCslisdir(url, urlLis, fileType)
             else:
-                if cs_key in urllis:
-                    urllis[cs_key].append(url)
+                if cs_key in urlLis:
+                    urlLis[cs_key].append(url)
                 else:
-                    urllis[cs_key] = [url]
-    return urllis
+                    urlLis[cs_key] = [url]
+    return urlLis
+
+

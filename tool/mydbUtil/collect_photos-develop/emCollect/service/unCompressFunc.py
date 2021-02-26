@@ -7,9 +7,7 @@ from .parseConf import RawDataBaseInfo
 import shutil
 
 
-
-
-def parsePathInfo(tmpNameItem ):
+def parsePathInfo(tmpNameItem):
     rdbi = RawDataBaseInfo()
     if len(tmpNameItem) == 0:
         print("tmpNameItem is null")
@@ -33,9 +31,9 @@ def parsePathInfo(tmpNameItem ):
     if (len(rdbi.dateStr) is not len("2020-10-10")) or (not rdbi.dateStr[0:4].isdigit()):
         # print("date@@@@@@@")
         return False, None
-    #print("")
-    #print("=============================================================")
-    #print("self.deviceType:{} self.cityCode:{} self.dateStr:{} ".format(rdbi.deviceType, rdbi.cityCode,
+    # print("")
+    # print("=============================================================")
+    # print("self.deviceType:{} self.cityCode:{} self.dateStr:{} ".format(rdbi.deviceType, rdbi.cityCode,
     #                                                                    rdbi.dateStr))
     return True, rdbi
 
@@ -52,17 +50,16 @@ class Uncompress:
         self.chaYanVehicle_info_files = []
         self.jiaoQiangXian_info_files = []
 
-        self.allSqlFiles=[]
+        self.allSqlFiles = []
         self.filterFunc = None
         self.IsParseSuccess = False
         self.objProgress = None
-        self.decodeVersion=""
+        self.decodeVersion = ""
 
     def setFilterFunc(self, callback):
         self.filterFunc = callback
 
-
-    def filterSqlFile(self,name):
+    def filterSqlFile(self, name):
         if name.endswith(".sql"):
             index = name.rfind("/")
             shortName = name[index + 1:]
@@ -78,10 +75,10 @@ class Uncompress:
             elif shortName.startswith("jiaoQiangXian_info"):
                 self.jiaoQiangXian_info_files.append(name)
                 pass
-            #print("shortname:", shortName)
+            # print("shortname:", shortName)
 
-    def filterSpecialFIle(self, name,index):
-        logger.debug("name:{}".format(name) )
+    def filterSpecialFIle(self, name, index):
+        logger.debug("name:{}".format(name))
         if logger.level > logging.DEBUG:
             self.objProgress.progressBarFlush(index)
         # if  name[-4:] == ".sql":
@@ -93,13 +90,11 @@ class Uncompress:
                 self.filterFunc()
         self.filterSqlFile(name)
 
-
     def parseBaseConfInfo(self):
-        isOk,obj = parsePathInfo(self.tmpFilePath)
+        isOk, obj = parsePathInfo(self.tmpFilePath)
         if isOk:
             self.IsParseSuccess = True
-        return isOk ,obj
-
+        return isOk, obj
 
     def getFileList(self):
         return []
@@ -110,7 +105,7 @@ class Uncompress:
             return False
         index = 0
         for name in self.getFileList():
-            self.filterSpecialFIle(name,index)
+            self.filterSpecialFIle(name, index)
             self.fd.extract(name, self.targetPath)
             index += 1
         self.fd.close()
@@ -123,8 +118,9 @@ class Uncompress:
 class unCompressZIP(Uncompress):
 
     def __init__(self, filePath, targetPath):
-        super().__init__( targetPath)
+        super().__init__(targetPath)
         self.getHandle(filePath)
+
     def getHandle(self, srcPath):
         self.fd = zipfile.ZipFile(srcPath)
 
@@ -135,7 +131,7 @@ class unCompressZIP(Uncompress):
 class unCompressTGZ(Uncompress):
 
     def __init__(self, filePath, targetPath):
-        super().__init__( targetPath)
+        super().__init__(targetPath)
         self.getHandle(filePath)
 
     def getHandle(self, srcPath):
@@ -143,5 +139,3 @@ class unCompressTGZ(Uncompress):
 
     def getFileList(self):
         return self.fd.getnames()
-
-

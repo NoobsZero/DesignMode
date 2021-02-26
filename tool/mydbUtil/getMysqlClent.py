@@ -1336,41 +1336,41 @@ if __name__ == '__main__':
     print(check_infos_df)
     print(vehicle_checks)
 
-    # df_check_infos = sqlToDf(check_infos) \
-    #     .rename(columns={'created_at': 'info_created_at'})
-    # df_check_infos.drop_duplicates(subset=['id'], keep='first', inplace=True)
-    # df_vehicle_checks = sqlToDf(vehicle_checks) \
-    #     .drop(columns=['ckbdzplist', 'zplist', 'splist', 'bdbhglist']) \
-    #     .rename(
-    #     columns={'hpzl': 'hpzl_id', 'csys': 'csys_id', 'zzcmc': 'zzcmc_id', 'clyt': 'clyt_id', 'clpp': 'clpp_id',
-    #              'cllx': 'cllx_id', 'created_at': 'check_created_at'})
-    # df_vehicle_checks.drop_duplicates(subset=['id'], keep='first', inplace=True)
-    # # 过滤数据
-    # df_check_infos = df_check_infos.loc[(df_check_infos['name'].fillna('').map(lambda k: gilterEmInfoK(k, zipurls))), :]
-    # df_vehicle_checks = df_vehicle_checks.loc[
-    #                     df_vehicle_checks['id'].isin(list(set(df_check_infos.vehicle_check_id.values.tolist()))), :]
-    # if not (df_check_infos.empty and df_vehicle_checks.empty):
-    #     # 数据清洗
-    #     df_vehicle_checks = pandas.merge(df_vehicle_checks, df_check_infos[['vehicle_check_id', 'name']].rename(
-    #         columns={'name': 'riqi_id'}).drop_duplicates(subset=['vehicle_check_id'], keep='first', inplace=False),
-    #                                      how='left', left_on='id', right_on='vehicle_check_id', sort=False, copy=False)
-    #     df_vehicle_checks.loc[:, 'riqi_id'] = df_vehicle_checks['riqi_id'].apply(lambda x: getEmInfoTime(cs_id, x))
-    #     df_vehicle_checks.loc[:, 'hphm'] = df_vehicle_checks[['fzjg', 'hphm']].apply(lambda x: x['fzjg'][-1] + x['hphm'], axis=1)
-    #     keybyid_lis = ['hpzl', 'csys', 'zzcmc', 'clyt', 'clpp', 'cllx']
-    #     for key in keybyid_lis:
-    #         df_vehicle_checks.loc[:, key + '_id'] = df_vehicle_checks[key + '_id'].apply(lambda x: literal_eval(
-    #             requests.get('http://192.168.50.100:3018//api/v1/chejian/get_id?field_name={}&field_value={}'.
-    #                          format(key, x)).text)['id'])
-    #     df_vehicle_checks.drop(columns=['vehicle_check_id', 'fzjg'], inplace=True)
-    #     df_check_infos.loc[:, 'name'] = df_check_infos['name'].apply(lambda x: x.split('/')[-1])
-    #     df_check_infos['category_id'] = df_check_infos[['category', 'reason']].apply(lambda x: literal_eval(
-    #         requests.get(
-    #             'http://192.168.50.100:3018/api/v1/chejian/get_id?field_name=code&city_id={}&category={}&reason={}'
-    #                 .format(cs_id, x['category'], x['reason'])).text)['id'], axis=1)
-    #     df_check_infos.drop(columns=['category', 'reason'], inplace=True)
-    #     # 数据格式转换
-    #     df_check_infos.loc[:, 'result'] = df_check_infos['result'].astype(str)
-    #     print(df_check_infos)
-    #     print(df_vehicle_checks)
-        # dfToSql(df_vehicle_checks, 'cj_text_checks')
-        # dfToSql(df_check_infos, 'cj_text_infos')
+    df_check_infos = sqlToDf(check_infos) \
+        .rename(columns={'created_at': 'info_created_at'})
+    df_check_infos.drop_duplicates(subset=['id'], keep='first', inplace=True)
+    df_vehicle_checks = sqlToDf(vehicle_checks) \
+        .drop(columns=['ckbdzplist', 'zplist', 'splist', 'bdbhglist']) \
+        .rename(
+        columns={'hpzl': 'hpzl_id', 'csys': 'csys_id', 'zzcmc': 'zzcmc_id', 'clyt': 'clyt_id', 'clpp': 'clpp_id',
+                 'cllx': 'cllx_id', 'created_at': 'check_created_at'})
+    df_vehicle_checks.drop_duplicates(subset=['id'], keep='first', inplace=True)
+    # 过滤数据
+    df_check_infos = df_check_infos.loc[(df_check_infos['name'].fillna('').map(lambda k: gilterEmInfoK(k, zipurls))), :]
+    df_vehicle_checks = df_vehicle_checks.loc[
+                        df_vehicle_checks['id'].isin(list(set(df_check_infos.vehicle_check_id.values.tolist()))), :]
+    if not (df_check_infos.empty and df_vehicle_checks.empty):
+        # 数据清洗
+        df_vehicle_checks = pandas.merge(df_vehicle_checks, df_check_infos[['vehicle_check_id', 'name']].rename(
+            columns={'name': 'riqi_id'}).drop_duplicates(subset=['vehicle_check_id'], keep='first', inplace=False),
+                                         how='left', left_on='id', right_on='vehicle_check_id', sort=False, copy=False)
+        df_vehicle_checks.loc[:, 'riqi_id'] = df_vehicle_checks['riqi_id'].apply(lambda x: getEmInfoTime(cs_id, x))
+        df_vehicle_checks.loc[:, 'hphm'] = df_vehicle_checks[['fzjg', 'hphm']].apply(lambda x: x['fzjg'][-1] + x['hphm'], axis=1)
+        keybyid_lis = ['hpzl', 'csys', 'zzcmc', 'clyt', 'clpp', 'cllx']
+        for key in keybyid_lis:
+            df_vehicle_checks.loc[:, key + '_id'] = df_vehicle_checks[key + '_id'].apply(lambda x: literal_eval(
+                requests.get('http://192.168.50.100:3018//api/v1/chejian/get_id?field_name={}&field_value={}'.
+                             format(key, x)).text)['id'])
+        df_vehicle_checks.drop(columns=['vehicle_check_id', 'fzjg'], inplace=True)
+        df_check_infos.loc[:, 'name'] = df_check_infos['name'].apply(lambda x: x.split('/')[-1])
+        df_check_infos['category_id'] = df_check_infos[['category', 'reason']].apply(lambda x: literal_eval(
+            requests.get(
+                'http://192.168.50.100:3018/api/v1/chejian/get_id?field_name=code&city_id={}&category={}&reason={}'
+                    .format(cs_id, x['category'], x['reason'])).text)['id'], axis=1)
+        df_check_infos.drop(columns=['category', 'reason'], inplace=True)
+        # 数据格式转换
+        df_check_infos.loc[:, 'result'] = df_check_infos['result'].astype(str)
+        print(df_check_infos)
+        print(df_vehicle_checks)
+        dfToSql(df_vehicle_checks, 'cj_text_checks')
+        dfToSql(df_check_infos, 'cj_text_infos')

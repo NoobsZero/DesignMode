@@ -1,10 +1,11 @@
 # -*- coding: UTF-8 -*-
 import os
-from sqlalchemy import  create_engine
-from sqlalchemy.orm import sessionmaker ,scoped_session
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.ext.declarative import declarative_base
+
 # from zope.sqlalchemy import ZopeTransactionExtension
-#from zope.sqlalchemy import register
+# from zope.sqlalchemy import register
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 # SQLALCHEMY_MIGRATE_REPO = os.path.join(basedir, 'db_repository')
@@ -18,12 +19,9 @@ Base = declarative_base()
 
 def initOrmHandle(mysqlUrl):
     # 初始化数据库连接:
-    engine = create_engine(mysqlUrl, encoding='utf-8',echo=False)
+    engine = create_engine(mysqlUrl, encoding='utf-8', echo=False)
     Base.metadata.create_all(engine)
     # 创建DBSession类型:
     DBSession = sessionmaker(bind=engine)
 
     return DBSession()
-
-
-

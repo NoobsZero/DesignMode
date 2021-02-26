@@ -3,25 +3,47 @@
 import os
 import shutil
 import random
+import tempfile
+
 import paramiko
 
 from tool.mylogUtil.baselog import logger
 
-
-def preStart(tmpDir):
+def checkDir(targetPath):
     """
-    创建临时目录（路径存在则递归删除再创建）
+        判断目录是否存在，不存在则创建
     Args:
-        tmpDir: 目录路径
+        targetPath: 路径
+
+    Returns:成功：0 失败：-1
+
+    """
+    Flag = 0
+    if os.path.isdir(targetPath):
+        pass
+    else:
+        try:
+            os.makedirs(targetPath)
+        except Exception as e:
+            logger.error("文件夹创建失败{}".format(targetPath))
+            logger.error("error:{}".format(e))
+            Flag = -1
+        Flag = 1
+    return Flag
+
+
+def preStart(fun):
+    """
+    创建临时目录(函数运行结束，自动删除临时目录)
+    Args:
+        fun: 目录路径
 
     Returns:boolean
 
     """
     try:
-        if os.path.exists(tmpDir):
-            # 递归地删除文件
-            shutil.rmtree(tmpDir)
-        os.makedirs(tmpDir)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            fun(tmpdir)
     except Exception as e:
         logger.error("临时文件创建失败:{}".format(e))
         return False
@@ -33,6 +55,7 @@ def mvDirToDir(root_src_dir, root_dst_dir):
         移动目录下所有文件到目录
     :param root_src_dir: 源目录
     :param root_dst_dir: 指定目录
+
     """
     root_src_dir = os.path.join(os.getcwd(), root_src_dir, '')
     root_dst_dir = os.path.join(os.getcwd(), root_dst_dir, '')
@@ -49,12 +72,13 @@ def mvDirToDir(root_src_dir, root_dst_dir):
                 if os.path.samefile(src_file, dst_file):
                     continue
                 os.remove(dst_file)
-            shutil.move(src_file, dst_dir)
+            shutil.move(src_file, dst_file)
+    delDir(root_src_dir)
 
 
 def moveFileToDir(root_src_file, root_dst_dir):
     """
-        移动文件到目录（文件存在则改名）
+        移动文件到目录
     :param root_src_file: 源文件
     :param root_dst_dir: 指定目录
     """
@@ -92,25 +116,25 @@ def get_filelist(dir, fileCondition='', topdown=True):
     for home, dirs, files in os.walk(dir, topdown=topdown):
         for filename in files:
             # 文件名列表，包含完整路径
-            if fileCondition is 'zip':
+            if fileCondition == 'zip':
                 if filename.endswith('.rar') or filename.endswith('.gz') or filename.endswith('.tar') or \
                         os.path.splitext(filename)[-1].endswith('.z', 0, 2) and (
                         'sql' not in filename):
                     Filelist.append(os.path.join(home, filename))
-            elif fileCondition is 'sql':
+            elif fileCondition == 'sql':
                 if filename.endswith('.sql'):
                     Filelist.append(os.path.join(home, filename))
-            elif fileCondition is 'rar':
+            elif fileCondition == 'rar':
                 if filename[-3:] == 'rar':
                     Filelist.append(os.path.join(home, filename))
-            elif fileCondition is 'suffix':
+            elif fileCondition == 'suffix':
                 if os.path.splitext(filename)[1] in suffix or filename[-3:] in suffix:
                     Filelist.append(os.path.join(home, filename))
                 elif home not in list_jpg_dir:
                     list_jpg_dir.append(home)
-            elif fileCondition is '':
+            elif fileCondition == '':
                 Filelist.append(os.path.join(home, filename))
-    if fileCondition is 'suffix':
+    if fileCondition == 'suffix':
         return Filelist, list_jpg_dir
     else:
         return Filelist
@@ -140,53 +164,61 @@ def getZipSubsection(sc, lis):
     return lis_sub_zip
 
 
-def decompressionZIP(dirs, sqlPath):
+def path_remake(path):
+    """
+        解决python读取linux路径中存在特殊字符无法识别的情况
+    Args:
+        path: 字符串或路径
+
+    Returns:字符串或路径
+
+    """
+    return path.replace(' ', '\ ').replace('(', '\(').replace(')', '\)')
+
+
+def decompressionZIP(dirs):
     """
         linux压缩包解压
+            注意：由于目录中存在一些特殊字符全部替换成'_'，避免后续操作带来不便（可以使用path_remake解决后续也需使用）
     :param dirs: 扫描目录
-    :param sqlPath: sql文件目录（可以不添加）
     """
-    # if not os.path.isdir(sqlPath):
-    #     os.system('mkdir ' + sqlPath)
-    zip = get_filelist(dirs, 'zip')
-    for i in zip:
-        new_file_name = i.split('/')[-1]
-        old_file_name = i.split('/')[-1]
-        for tu in ['(', ')', ' ', '-', '#', ';', '$', '!', '@', '&', '\\', '"']:
-            new_file_name = new_file_name.replace(tu, '_')
-        new_file_name = i.replace(old_file_name, new_file_name)
-        if i != new_file_name:
-            os.system('mv ' + "'" + i + "'" + ' ' + new_file_name)
-        i = new_file_name
-        pathname, filename = os.path.split(i)
-        newpath = os.path.join(pathname, filename.split('.')[0], '')
-        print(newpath)
-        if not os.path.isdir(newpath):
-            os.system('mkdir ' + newpath)
-        os.system('echo ' + i + ' ... ...')
-        if filename.endswith('.gz') or filename.endswith('tar'):
-            os.system('tar -xf ' + i + ' -C ' + newpath + ' && rm ' + i)
-        elif filename.endswith('zip'):
-            lis_sub_zip = getZipSubsection(filename, zip)
-            if len(lis_sub_zip) > 0:
-                i_pathname, i_filename = os.path.split(i)
-                new_i = os.path.join(i_pathname[0], 'all_' + i_filename[-1])
-                os.system('mv ' + i + ' ' + new_i)
-                for sub_zip in lis_sub_zip:
-                    os.system('cat ' + sub_zip + ' > ' + i + ' && rm ' + sub_zip)
-                os.system('unzip -O gbk ' + new_i + ' -d ' + newpath + ' && rm ' + new_i)
-            else:
-                os.system('unzip -O gbk ' + i + ' -d ' + newpath + ' && rm ' + i)
-        elif filename.endswith('.rar') and ('.part' not in filename):
-            os.system('rar e -o+ -y ' + i + ' -C ' + newpath + ' && rm ' + i)
-        print(i)
-        os.system('echo ' + i + ' ok')
-        # todoList = get_filelist(dirs, fileCondition='sql')
-        # for sqldir in todoList:
-        #     moveFileToDir(sqldir, sqlPath)
-    delDir(dirs)
-
-
+    index = 0
+    while True:
+        index += 1
+        zip = get_filelist(dirs, 'zip')
+        for i in zip:
+            new_file_name = i.split('/')[-1]
+            old_file_name = i.split('/')[-1]
+            for tu in ['(', ')', ' ', '-', '#', ';', '$', '!', '@', '&', '\\', '"']:
+                new_file_name = new_file_name.replace(tu, '_')
+            new_file_name = i.replace(old_file_name, new_file_name)
+            if i != new_file_name:
+                os.system('mv ' + "'" + i + "'" + ' ' + new_file_name)
+            i = new_file_name
+            pathname, filename = os.path.split(i)
+            newpath = os.path.join(pathname, filename.split('.')[0], '')
+            if not os.path.isdir(newpath):
+                os.system('mkdir ' + newpath)
+            os.system('echo ' + i + ' ... ...')
+            if filename.endswith('.gz') or filename.endswith('tar'):
+                os.system('tar -xf ' + i + ' -C ' + newpath + ' && rm ' + i)
+            elif filename.endswith('zip'):
+                lis_sub_zip = getZipSubsection(filename, zip)
+                if len(lis_sub_zip) > 0:
+                    i_pathname, i_filename = os.path.split(i)
+                    new_i = os.path.join(i_pathname[0], 'all_' + i_filename[-1])
+                    os.system('mv ' + i + ' ' + new_i)
+                    for sub_zip in lis_sub_zip:
+                        os.system('cat ' + sub_zip + ' > ' + i + ' && rm ' + sub_zip)
+                    os.system('unzip -O gbk ' + new_i + ' -d ' + newpath + ' && rm ' + new_i)
+                else:
+                    os.system('unzip -O gbk ' + i + ' -d ' + newpath + ' && rm ' + i)
+            elif filename.endswith('.rar') and ('.part' not in filename):
+                os.system('rar e -o+ -y ' + i + ' -C ' + newpath + ' && rm ' + i)
+            os.system('echo ' + i + ' ok')
+        delDir(dirs)
+        if len(get_filelist(dirs, 'zip')) == 0 or index >= 3:
+            break
 
 
 if __name__ == '__main__':

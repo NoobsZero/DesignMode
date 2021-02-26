@@ -8,6 +8,7 @@ from os.path import abspath, dirname
 
 sys.path.append(dirname(dirname(abspath(__file__))))  # 将项目路径引入
 
+from emCollect.model import modelBase
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

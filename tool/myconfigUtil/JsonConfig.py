@@ -57,3 +57,7 @@ class JsonConfig:
 
     def getValue(self, keyName):
         return self.objMap[keyName]
+
+
+if __name__ == '__main__':
+    print(JsonConfig().loadConf(r'E:\JetBrains\PycharmProjects\untitled\tool\baseUtil\csId.json').getValue('cs_id'))

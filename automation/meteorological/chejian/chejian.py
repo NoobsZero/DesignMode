@@ -17,6 +17,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 from tool.dirUtil.mvi import cs_id
+from tool.mytimeUtil.dataTime import get_time_difference
 
 
 def ModifDocuments(infileName, downLoadDir):
@@ -32,6 +33,7 @@ def ModifDocuments(infileName, downLoadDir):
 sheng = [cs_id[i] for i in cs_id if i[-4:] == '0000']
 shi = [cs_id[i] for i in cs_id if i[-4:] != '0000' and i[-2:] == '00']
 qu = [cs_id[i] for i in cs_id if i[-2:] != '00']
+
 
 def getChengshi(url):
     """:arg 通过查询城市列表匹配地址中的城市名称并去掉后缀
@@ -58,13 +60,16 @@ def getTableLis(browser, datapath='/道路交通本部'):
     for link in browser.find_element_by_xpath('/html/body/div[3]/div[2]/div[2]/table/tbody').find_elements_by_tag_name(
             'tr'):
         datafile = link.get_attribute('data-file')
-        if re.findall(r'车检', datafile) and not re.findall(r'查验|8000|日志|自动化|7000|误判|.mp4|程序|.rar|.exe|.wmv|违法|镜像|视频', datafile):
+        if re.findall(r'车检|查验|误判', datafile) and not re.findall(r'8000|日志|自动化|7000|.mp4|程序|.rar|.exe|.wmv|违法|镜像|视频|示例',
+                                                                datafile):
             chejian_dic[datafile] = {'data-type': link.get_attribute('data-type'),
                                      'data-size': link.get_attribute('data-size'),
                                      'data-path': link.get_attribute('data-path'),
+                                     'data-mtime': link.get_attribute('data-mtime'),
                                      'data-link': link}
     for key in chejian_dic:
-        if chejian_dic[key]['data-type'] == 'dir' and int(chejian_dic[key]['data-size']) > 0:
+        if chejian_dic[key]['data-type'] == 'dir' and int(chejian_dic[key]['data-size']) > 0 and get_time_difference(
+                chejian_dic[key]['data-mtime'], sub='H') > 10:
             datapath = chejian_dic[key]['data-path'] + '/' + key
             if not getChengshi(key) is None:
                 print(key)
