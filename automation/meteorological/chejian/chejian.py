@@ -7,6 +7,8 @@
 @Software:PyCharm
 """
 import os
+import shutil
+import threading
 import time
 import jieba
 import re
@@ -16,7 +18,10 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
+from tool.baseUtil.getBaseUtil import BaseProgressBar
 from tool.dirUtil.mvi import cs_id
+from tool.myconfigUtil.JsonConfig import JsonConfig
+from tool.mylinuxUtil.getMessgae import LoginLinux
 from tool.mytimeUtil.dataTime import get_time_difference
 
 
@@ -50,9 +55,29 @@ def getChengshi(url):
             return cs[0]
 
 
+def zip_cj_tmp(zipFile):
+    client = LoginLinux()
+    linuxPaths = JsonConfig().loadConf(
+        r'E:\JetBrains\PycharmProjects\untitled\automation\meteorological\chejian\conf\linuxpath.conf.json')
+    reLis = client.exec(
+        'unzip -n -O gbk {} -d {}'.format(
+            os.path.join(linuxPaths.getValue('cj_tmp'), os.path.basename(zipFile)),
+            linuxPaths.getValue('cj_tmp')))
+    return reLis
+
+
+def file_winToLinux(zipFile, count):
+    linuxFile = os.path.join(r'\\192.168.90.10\vehicle_data\tmp', os.path.basename(zipFile))
+    print(linuxFile)
+    threading.Thread(target=shutil.move,
+                     args=(zipFile, r'\\192.168.90.10\vehicle_data\tmp')).start()
+    handle = BaseProgressBar(count)
+    tqdm_re = handle.tqdmBarFlush(linuxFile)
+    return tqdm_re
+
+
 def getTableLis(browser, datapath='/道路交通本部'):
     browser.get('https://pan.em-data.com.cn/index.php/apps/files/?dir=%s' % datapath)
-    print('https://pan.em-data.com.cn/index.php/apps/files/?dir=%s' % datapath)
     wait = WebDriverWait(browser, 10)
     wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[3]/div[2]/div[2]/table/tbody')))
     time.sleep(1)
@@ -68,23 +93,30 @@ def getTableLis(browser, datapath='/道路交通本部'):
                                      'data-mtime': link.get_attribute('data-mtime'),
                                      'data-link': link}
     for key in chejian_dic:
-        if chejian_dic[key]['data-type'] == 'dir' and int(chejian_dic[key]['data-size']) > 0 and get_time_difference(
-                chejian_dic[key]['data-mtime'], sub='H') > 10:
+        if chejian_dic[key]['data-type'] == 'dir' and int(chejian_dic[key]['data-size']) > 0:
             datapath = chejian_dic[key]['data-path'] + '/' + key
-            if not getChengshi(key) is None:
-                print(key)
+            if not getChengshi(key) is None and get_time_difference(chejian_dic[key]['data-mtime'], sub='H') > 0:
                 action = ActionChains(browser).move_to_element(chejian_dic[key]['data-link'])
                 action.context_click(chejian_dic[key]['data-link']).perform()  # 右键点击该元素
                 element = browser.find_element_by_xpath('/html/body/div[6]/div/ul/li[5]')
                 ActionChains(browser).move_to_element(element).click().perform()
                 time.sleep(2)
                 for filename in os.listdir(download):
-                    if key in filename:
-                        print(filename)
+                    tqdm_re = False
+                    if key in filename and filename.endswith('.crdownload'):
+                        handle = BaseProgressBar(chejian_dic[key]['data-size'])
+                        filepath = os.path.join(download, filename)
+                        print('https://pan.em-data.com.cn/index.php/apps/files/?dir=%s' % datapath)
+                        tqdm_re = handle.tqdmBarFlush(filepath)
+                        zipFile = os.path.join(download, key + '.zip')
+                        time.sleep(5)
+                    if tqdm_re and os.path.isfile(zipFile):
+                        # 移动
+                        if file_winToLinux(zipFile, chejian_dic[key]['data-size']):
+                            # 解压
+                            print(zip_cj_tmp(zipFile))
             else:
                 getTableLis(browser, datapath)
-        # elif re.findall(r'.tar.gz', key) and chejian_dic[key]['data-type'] == 'file' and chejian_dic[key]['data-size'] > 0:
-        #     print(key)
     if '/'.join(datapath.split('/')[:-1]) != '/道路交通本部' or len(chejian_dic) == 0:
         time.sleep(2)
         browser.back()
@@ -100,18 +132,16 @@ if __name__ == '__main__':
     prefs = {"profile.managed_default_content_settings.images": 2}
     capo = DesiredCapabilities.PHANTOMJS
     options = webdriver.ChromeOptions()
-    # options.add_argument('--headless')
+    options.add_argument('--headless')
     options.add_experimental_option("prefs", {"download.default_directory": download})
     options.add_argument('--ignore-certificate-errors')
     # taskkill /F /IM java.exe
     # taskkill /F /IM chromedriver.exe
     browser = webdriver.Chrome(desired_capabilities=capo, service_args=proxy_data, chrome_options=options)
     browser.get('https://pan.em-data.com.cn/index.php/login')
-    # 输入用户名
     browser.find_element_by_id("user").send_keys("Afakerchen@em-data.com.cn")
-    # 输入密码
     browser.find_element_by_id("password").send_keys("asdf1234/")
-    # 点击“下一步”
     browser.find_element_by_id("submit-form").click()
     new_lis = []
     getTableLis(browser)
+

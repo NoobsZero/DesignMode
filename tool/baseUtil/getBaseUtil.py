@@ -8,11 +8,13 @@
 import base64  # 想将字符串转编码成base64,要先将字符串转换成二进制数据
 import os
 import sys
+import time
 import uuid
 import jieba
 from xpinyin import Pinyin
 from tool.myconfigUtil.JsonConfig import JsonConfig
 from tool.mylogUtil.baselog import logger
+from tqdm import tqdm
 
 
 def get_encode_base64(k, v=None):
@@ -124,13 +126,14 @@ class BaseProgressBar:
     """
 
     def __init__(self, count):
-        self.count = count
+        self.count = int(count)
         self.interval = 1
         interTmp = int(self.count / 100)
         if interTmp > 1:
             self.interval = interTmp
 
     def progressBarFlush(self, index):
+        index = int(index)
         if self.count < 2:
             return
         if (index < self.interval) or (index % self.interval != 0):
@@ -139,6 +142,22 @@ class BaseProgressBar:
         s1 = "\r[%s%s]%d%%" % ("#" * i, " " * (100 - i), i)
         sys.stdout.write(s1)
         sys.stdout.flush()
+
+    def tqdmBarFlush(self, filePath):
+        with tqdm(total=self.count) as pbar:
+            if not os.path.isfile(filePath):
+                raise FileNotFoundError(filePath)
+            while True:
+                try:
+                    index = os.path.getsize(filePath)
+                    pbar.update(index - self.interval)
+                    if index >= self.count:
+                        return True
+                    time.sleep(0.1)
+                    self.interval = index
+                except FileNotFoundError as e:
+                    pbar.update(self.count - self.interval)
+                    return True
 
 
 def getChengshi(url, chengshi, suffix):
@@ -226,3 +245,8 @@ def getCslisdir(zip_url, urlLis=None, fileType='dir'):
     return urlLis
 
 
+if __name__ == '__main__':
+    count = 8888888
+    handle = BaseProgressBar(count)
+    for i in range(count):
+        handle.progressBarFlush(i)

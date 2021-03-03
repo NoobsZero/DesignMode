@@ -1,0 +1,2 @@
+[2021-02-10 15:27:33,895_mylog   -ERROR   ]:读取文件失败:[tool/baseUtil/csId.json][[Errno 2] No such file or directory: 'tool/baseUtil/csId.json'] 
+[2021-02-10 15:27:52,743_mylog   -ERROR   ]:读取文件失败:[tool\baseUtil\csId.json][[Errno 2] No such file or directory: 'tool\\baseUtil\\csId.json'] 

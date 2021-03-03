@@ -5,35 +5,32 @@
 @Author :Chen
 @Software:PyCharm
 """
-from multiprocessing import Pool
+import os
+import threading
+import time
 
-import pymysql
-from dbutils.pooled_db import PooledDB
-
-def mysql_connection():
-    maxconnections = 15  # 最大连接数
-    blocking = True
-    pool = PooledDB(
-        pymysql,
-        maxconnections=maxconnections,
-        blocking=blocking,
-        host='192.168.50.100', user='root', password='EmDataMysql2020###',
-        database='em_vehicle', charset='utf8',
-        use_unicode=True)
-    return pool.connection()
+from tool.baseUtil.getBaseUtil import BaseProgressBar
 
 
-def f(x):
-    return x*x
+def sing():
+    for i in range(num):
+        print("sing%d" % i)
+        time.sleep(0.5)
+
+
+def dance(num):
+    for i in range(num):
+        print("dancing%d" % i)
+        time.sleep(0.5)
+
+
+def main():
+    """创建启动线程"""
+    t_sing = threading.Thread(target=sing, args=(5,))
+    t_dance = threading.Thread(target=dance, args=(6, ))
+    t_sing.start()
+    t_dance.start()
+
 
 if __name__ == '__main__':
-    conn = mysql_connection()
-    cur = conn.cursor()
-    SQL = "select * from cj_cities"
-    r = cur.execute(SQL)
-    r = cur.fetchall()
-    print(r)
-    cur.close()
-    conn.close()
-    # with Pool(5) as p:
-    #     print(p.map(f, [1, 2, 3]))
+    main()

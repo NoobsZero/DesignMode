@@ -1,0 +1,8 @@
+{
+    "cj_tmp": "/empool/vehicle_data/tmp",
+    "cj_todo": "/empool/vehicle_data/todo",
+    "cj_collect": "/empool/vehicle_data/collect_photos-develop",
+    "cj_log": "/empool/vehicle_data/collect_photos-develop/log/base-log.log",
+    "cj_other": "/empool/vehicle_data/rawdata/other",
+    "cj_wupan": "/empool/vehicle_data/rawdata/wupan"
+}
