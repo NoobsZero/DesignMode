@@ -1,0 +1,13 @@
+https://zhuanlan.zhihu.com/p/140812454[2021-03-05 15:38:23,848_mylog   -ERROR   ]:读取文件失败:[E:\JetBrains\PycharmProjects\untitled\source\linux.conf.json][[Errno 2] No such file or directory: 'E:\\JetBrains\\PycharmProjects\\untitled\\source\\linux.conf.json'] 
+[2021-03-05 15:57:06,390_mylog   -ERROR   ]:读取文件失败:[E:\JetBrains\PycharmProjects\untitled\source\linux.conf.json][[Errno 2] No such file or directory: 'E:\\JetBrains\\PycharmProjects\\untitled\\source\\linux.conf.json'] 
+[2021-03-05 16:50:52,363_mylog   -ERROR   ]:读取文件失败:[E:\JetBrains\PycharmProjects\untitled\source\linux.conf.json][[Errno 2] No such file or directory: 'E:\\JetBrains\\PycharmProjects\\untitled\\source\\linux.conf.json'] 
+[2021-03-05 16:57:33,875_mylog   -ERROR   ]:读取文件失败:[E:\JetBrains\PycharmProjects\untitled\source\linux.conf.json][[Errno 2] No such file or directory: 'E:\\JetBrains\\PycharmProjects\\untitled\\source\\linux.conf.json'] 
+[2021-03-05 17:06:45,131_mylog   -ERROR   ]:读取文件失败:[E:\JetBrains\PycharmProjects\untitled\source\linux.conf.json][[Errno 2] No such file or directory: 'E:\\JetBrains\\PycharmProjects\\untitled\\source\\linux.conf.json'] 
+[2021-03-05 17:11:10,121_mylog   -ERROR   ]:读取文件失败:[E:\JetBrains\PycharmProjects\untitled\source\linux.conf.json][[Errno 2] No such file or directory: 'E:\\JetBrains\\PycharmProjects\\untitled\\source\\linux.conf.json'] 
+[2021-03-05 17:16:34,963_mylog   -ERROR   ]:读取文件失败:[E:\JetBrains\PycharmProjects\untitled\source\linux.conf.json][[Errno 2] No such file or directory: 'E:\\JetBrains\\PycharmProjects\\untitled\\source\\linux.conf.json'] 
+[2021-03-05 17:22:17,335_mylog   -ERROR   ]:读取文件失败:[<tool.myconfigUtil.JsonConfig.JsonConfig object at 0x0000019502D3BC10>][expected str, bytes or os.PathLike object, not JsonConfig] 
+[2021-03-05 17:25:02,796_mylog   -ERROR   ]:读取文件失败:[<tool.myconfigUtil.JsonConfig.JsonConfig object at 0x000002AB79B36AC0>][expected str, bytes or os.PathLike object, not JsonConfig] 
+[2021-03-22 10:45:03,520_mylog   -ERROR   ]:error： 查询操作出错
+[2021-03-22 10:45:03,536_mylog   -ERROR   ]:error:[(1049, "Unknown database 'em_vehicle'")]
+[2021-03-22 10:55:11,088_mylog   -ERROR   ]:error： 查询操作出错
+[2021-03-22 10:55:11,088_mylog   -ERROR   ]:error:[(1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '} WHERE NAME='{photsName}'' at line 1")]

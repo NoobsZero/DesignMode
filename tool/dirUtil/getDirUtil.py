@@ -2,12 +2,10 @@
 # coding=utf-8
 import os
 import shutil
-import random
 import tempfile
 
-import paramiko
-
 from tool.mylogUtil.baselog import logger
+
 
 def checkDir(targetPath):
     """

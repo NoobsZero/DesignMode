@@ -245,7 +245,7 @@ def createDataBase(configPath, dbname=""):
 
 
 def test_select(sqlStr):
-    dbHandle = OperateDB(r'E:\JetBrains\PycharmProjects\untitled\source\db.conf.json')
+    dbHandle = OperateDB(r'G:\JetBrains\PycharmProjects\untitled\source\mydb.conf.json')
     result = dbHandle.select(sqlStr)
     print([list(i)[0] for i in result])
 

@@ -30,7 +30,7 @@ def getTime(timestamp=time.localtime(), timeformat="%Y-%m-%d %H:%M:%S"):
 
 def getStampToTime(timestamp, timeformat="%Y-%m-%d %H:%M:%S"):
     """
-    时间戳转换时间
+    时间戳转换日期
     Args:
         timestamp: 时间戳
         timeformat: 时间格式
@@ -40,6 +40,20 @@ def getStampToTime(timestamp, timeformat="%Y-%m-%d %H:%M:%S"):
     """
     timeStruct = time.localtime(timestamp)
     return getTime(timestamp=timeStruct, timeformat=timeformat)
+
+
+def getTimeToStamp(times, timeformat="%Y-%m-%d %H:%M:%S"):
+    """
+        日期转换时间戳
+        Args:
+            times: 日期
+            timeformat: 时间格式
+
+        Returns: 时间戳
+
+        """
+    timeArray = time.strptime(times, timeformat)
+    return int(time.mktime(timeArray))
 
 
 def get_stamp13(datetime_obj=None):
@@ -86,8 +100,8 @@ def getDate(time_dst_dir):
     time_t1 = re.search(r'(\d{4}-\d{2}-\d{2})$', time_dst_dir)
     time_t2 = re.search(r'(\d{4}\d{2}\d{2})$', str(time_dst_dir))
     time_t3 = re.search(r'(\d{4}年\d{2}月\d{2}日)$', str(time_dst_dir))
-    if time_t1 and validate(time_t1.group(1)):
-        return time_dst_dir
+    if time_t1:
+        return time_t1.group(1)
     elif time_t2 and validate(time_t2.group(1)):
         return parse(time_t2.group(1)).strftime('%Y-%m-%d')
     elif time_t3:

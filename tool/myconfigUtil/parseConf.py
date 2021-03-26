@@ -7,7 +7,6 @@
 """
 import os
 
-from tool.mydbUtil.emCollect.common import baseTool
 from tool.mylogUtil.baselog import logger
 
 ROOT_TMP_DATA_PATH = "../_Data_emCollect"

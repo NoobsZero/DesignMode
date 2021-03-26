@@ -1,0 +1,10 @@
+[2021-03-15 13:40:50,140_mylog   -ERROR   ]:error： 查询操作出错
+[2021-03-15 13:40:50,140_mylog   -ERROR   ]:error:[(1054, "Unknown column 'check_infos' in 'where clause'")]
+[2021-03-15 13:40:50,140_mylog   -ERROR   ]:error： 查询操作出错
+[2021-03-15 13:40:50,140_mylog   -ERROR   ]:error:[(1054, "Unknown column 'vehicle_checks' in 'where clause'")]
+[2021-03-26 12:23:04,098_mylog   -ERROR   ]:error： 查询操作出错
+[2021-03-26 12:23:04,129_mylog   -ERROR   ]:error:[(1146, "Table 'test.cj_anshun_checks' doesn't exist")]
+[2021-03-26 12:23:17,222_mylog   -ERROR   ]:error： 查询操作出错
+[2021-03-26 12:23:17,222_mylog   -ERROR   ]:error:[(1146, "Table 'test.cj_anshun_checks' doesn't exist")]
+[2021-03-26 12:25:56,325_mylog   -ERROR   ]:error： 查询操作出错
+[2021-03-26 12:25:56,325_mylog   -ERROR   ]:error:[(1054, "Unknown column 'cj_anshun_checks' in 'where clause'")]

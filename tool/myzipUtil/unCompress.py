@@ -55,6 +55,7 @@ class Uncompress:
             self.filterSpecialFIle(name, index)
             # win系统特殊字符需要替换
             if systemType == 'windows':
+                print(type(self.fd.namelist()))
                 for fn in self.fd:
                     fn.name = re.sub(r'[\/:*?"<>|]', '_', fn.name)
                 name = re.sub(r'[\/:*?"<>|]', '_', name)
@@ -71,17 +72,22 @@ class unCompressZIP(Uncompress):
     Args:
         filePath: 原始路径
         targetPath: 目标路径
+        specifiedDirectory: 指定解压路径（包含判断）
     """
 
-    def __init__(self, filePath, targetPath):
+    def __init__(self, filePath, targetPath, specifiedDirectory):
         super().__init__(targetPath)
         self.getHandle(filePath)
+        self.specifiedDirectory = specifiedDirectory
 
     def getHandle(self, srcPath):
         self.fd = zipfile.ZipFile(srcPath)
 
     def getFileList(self):
-        return self.fd.namelist()
+        if self.specifiedDirectory is not None:
+            return [file for file in self.fd.namelist() if self.specifiedDirectory in file]
+        else:
+            return self.fd.namelist()
 
 
 class unCompressTGZ(Uncompress):
@@ -144,7 +150,7 @@ class unCompressGZ(Uncompress):
         return self.fd.filename()
 
 
-def parseSourceFile(filePath, targetPath):
+def parseSourceFile(filePath, targetPath, specifiedDirectory=None):
     """
         解压源文件
     Args:
@@ -161,7 +167,7 @@ def parseSourceFile(filePath, targetPath):
 
     strTail = ""
     if filePath.endswith(".zip"):
-        un_compress_obj = unCompressZIP(filePath, targetPath)
+        un_compress_obj = unCompressZIP(filePath, targetPath, specifiedDirectory)
         strTail = ".zip"
     elif filePath.endswith(".tar.gz"):
         un_compress_obj = unCompressTGZ(filePath, targetPath)
@@ -188,7 +194,14 @@ def parseSourceFile(filePath, targetPath):
 
 
 if __name__ == '__main__':
-    res, unCompressObj = parseSourceFile(filePath='E:\\chejian\\20210225-中山车检-赵振强-已完成\\chejian_4420_20210225133614.tar.gz',
-                                         targetPath='E:\\chejian\\20210225-中山车检-赵振强-已完成')
-    if res:
-        unCompressObj.start(systemType='windows')
+    downloadDir = r'G:\chejian'
+    specifiedDir = r'G:\test'
+    for dirname in os.listdir(downloadDir):
+        downloadFile = os.path.join(downloadDir, dirname)
+        if dirname.endswith(".zip") and os.path.isfile(downloadFile):
+            # PLUS
+            res, unCompressObj = parseSourceFile(filePath=downloadFile,
+                                                 targetPath=specifiedDir, specifiedDirectory='/CONUS/MergedReflectivityQC/')
+            if res:
+                unCompressObj.start()
+

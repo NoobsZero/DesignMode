@@ -9,18 +9,21 @@ import os
 
 import paramiko
 
+from tool.baseUtil.getBaseUtil import project_root_path
 from tool.myconfigUtil.JsonConfig import JsonConfig
 
 
 class LoginLinux:
-    def __init__(self, sshConfPath=r'E:\JetBrains\PycharmProjects\untitled\source\linux.conf.json'):
+    def __init__(self, sshConfPath=None):
         """
             LoginLinux类
             通过SSH连接Linux
         Args:
             sshConfPath: 配置文件地址
         """
-        self.sshConf = JsonConfig().loadConf(sshConfPath)
+        self.SSHConfPath = os.path.join(project_root_path('untitled'),
+                                        r'source\linux.conf.json') if sshConfPath is None else sshConfPath
+        self.sshConf = JsonConfig().loadConf(self.SSHConfPath)
         self.sys_ip = self.sshConf.getValue('sys_ip')
         self.username = self.sshConf.getValue('username')
         self.password = self.sshConf.getValue('password')

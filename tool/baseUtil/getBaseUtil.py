@@ -10,11 +10,69 @@ import os
 import sys
 import time
 import uuid
+from abc import abstractmethod
+
 import jieba
-from xpinyin import Pinyin
-from tool.myconfigUtil.JsonConfig import JsonConfig
-from tool.mylogUtil.baselog import logger
-from tqdm import tqdm
+import xpinyin
+import tool.myconfigUtil.JsonConfig
+import tool.mylogUtil.baselog
+import tqdm
+
+
+def project_root_path(project_name=None):
+    """
+        获取当前项目根路径
+        :param project_name:
+        :return: 根路径
+    """
+    PROJECT_NAME = 'untitled' if project_name is None else project_name
+    project_path = os.path.abspath(os.path.dirname(__file__))
+    root_path = project_path[:project_path.find("{}\\".format(PROJECT_NAME)) + len("{}\\".format(PROJECT_NAME))]
+    # print('当前项目名称：{}\r\n当前项目根路径：{}'.format(PROJECT_NAME, root_path))
+    return root_path
+
+
+def typeof(variate):
+    """
+        判断变量类型的函数
+    Args:
+        variate: 
+
+    Returns:
+
+    """""
+    types = None
+    if isinstance(variate, int):
+        types = "int"
+    elif isinstance(variate, str):
+        types = "str"
+    elif isinstance(variate, float):
+        types = "float"
+    elif isinstance(variate, list):
+        types = "list"
+    elif isinstance(variate, tuple):
+        types = "tuple"
+    elif isinstance(variate, dict):
+        types = "dict"
+    elif isinstance(variate, set):
+        types = "set"
+    return types
+
+
+def getType(variate):
+    """
+        返回变量类型
+    Args:
+        variate:
+
+    Returns:
+
+    """
+    arr = {"int": "整数", "float": "浮点", "str": "字符串", "list": "列表", "tuple": "元组", "dict": "字典", "set": "集合"}
+    vartype = typeof(variate)
+    if not (vartype in arr):
+        return "未知类型"
+    return arr[vartype]
 
 
 def get_encode_base64(k, v=None):
@@ -74,7 +132,7 @@ def getPinyin(value=""):
     """
     ret = ""
     if len(value) > 0:
-        ret = Pinyin().get_pinyin(value, "")
+        ret = xpinyin.Pinyin().get_pinyin(value, "")
     return ret
 
 
@@ -144,7 +202,7 @@ class BaseProgressBar:
         sys.stdout.flush()
 
     def tqdmBarFlush(self, filePath):
-        with tqdm(total=self.count) as pbar:
+        with tqdm.tqdm(total=self.count) as pbar:
             if not os.path.isfile(filePath):
                 raise FileNotFoundError(filePath)
             while True:
@@ -160,7 +218,7 @@ class BaseProgressBar:
                     return True
 
 
-def getChengshi(url, chengshi, suffix):
+def getChengshi(url, chengshi, suffix, types='linux'):
     """
         获取城市名
         通过查询城市列表匹配地址中的城市名称并去掉后缀
@@ -177,26 +235,23 @@ def getChengshi(url, chengshi, suffix):
     for i in seg_list:
         for k in chengshi:
             # linux
-            i = i.encode('utf-8')
+            if types == 'linux':
+                i = i.encode('utf-8')
             if i.endswith(suffix):
                 i = i.rstrip(suffix)
-            if k.startswith(i):
-                if suffix == '市':
-                    return i
-                elif suffix == '区':
-                    return i
-                elif suffix == '省':
-                    return i
+            if k.startswith(i) and ((len(k) > 2 and len(i) > 1) or (len(k) == 2 and len(i) == 1)):
+                return i
 
 
-class CsID:
-    def __init__(self, filePath=r'E:\JetBrains\PycharmProjects\untitled\tool\baseUtil\csId.json'):
-        self.cityConfPath = filePath
+class MyCity:
+    def __init__(self, filePath=None):
+        self.cityConfPath = os.path.join(project_root_path('untitled'),
+                                         r'tool\baseUtil\csId.json') if filePath is None else filePath
         self.cityMapper = {}
         self.readCityName()
 
     def readCityName(self):
-        self.cityMapper = JsonConfig().loadConf(self.cityConfPath).getValue(
+        self.cityMapper = tool.myconfigUtil.JsonConfig.JsonConfig().loadConf(self.cityConfPath).getValue(
             'cs_id')
 
     def getSheng(self):
@@ -209,11 +264,18 @@ class CsID:
         return [self.cityMapper[i] for i in self.cityMapper if i[-2:] != '00']
 
     def getCityName(self, citycode):
-        cityName = ""
-        try:
-            cityName = self.cityMapper[citycode]
-        except KeyError:
-            logger.error("未知的citycode：[{}]".format(citycode))
+        cityName = None
+        if is_number(citycode):
+            try:
+                cityName = self.cityMapper[citycode]
+            except KeyError:
+                tool.mylogUtil.baselog.logger.error("未知的citycode：[{}]".format(citycode))
+        else:
+            cityName = getChengshi(citycode, MyCity().getShi(), '市', 'win')
+            if cityName is None:
+                cityName = getChengshi(citycode, MyCity().getQu(), '区', 'win')
+            if cityName is None:
+                cityName = getChengshi(citycode, MyCity().getSheng(), '省', 'win')
         return cityName
 
 
@@ -230,11 +292,11 @@ def getCslisdir(zip_url, urlLis=None, fileType='dir'):
     for url in os.listdir(zip_url):
         url = os.path.join(zip_url, url)
         if os.path.isdir(url) and fileType == 'dir' or fileType == 'file' and os.path.isfile(url):
-            cs_key = getChengshi(url, CsID().getShi(), '市')
+            cs_key = getChengshi(url, MyCity().getShi(), '市')
             if cs_key is None:
-                cs_key = getChengshi(url, CsID().getQu(), '区')
+                cs_key = getChengshi(url, MyCity().getQu(), '区')
             if cs_key is None:
-                cs_key = getChengshi(url, CsID().getSheng(), '省')
+                cs_key = getChengshi(url, MyCity().getSheng(), '省')
             if cs_key is None:
                 urlLis = getCslisdir(url, urlLis, fileType)
             else:

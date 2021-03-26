@@ -562,7 +562,7 @@ cs_id = {'110000': '北京市', '110100': '北京市', '110101': '东城区', '1
 
 
 def path_remake(path):
-    return path.replace(' ', '\ ').replace('(', '\(').replace(')', '\)').replace('&', '\&')
+    return path.replace(' ', '\ ').replace('(', '\(').replace(')', '\)')
 
 
 def mvDirToDir(root_src_dir, root_dst_dir):
@@ -626,7 +626,7 @@ def get_filelist(dir, fileCondition='', topdown=True):
               '.cpl', '.jsa', '.md', '.properties', '.jar', '.data', '.bfc', '.src', '.ja', '.dat', '.cfg',
               '.pf', '.gif', '.ttf', '.jfc', '.access', '.template', '.certs', '.policy', '.security', '.libraries',
               '.sym', '.idl', '.lib', '.clusters', '.conf', '.xml', '.tar', '.gz', '.csv', '.sql', '.xml_hidden',
-              '.lic']
+              '.lic', '.docx']
     list_jpg_dir = []
     for home, dirs, files in os.walk(dir, topdown=topdown):
         for filename in files:
@@ -643,7 +643,7 @@ def get_filelist(dir, fileCondition='', topdown=True):
                 if filename[-3:] == 'rar':
                     Filelist.append(os.path.join(home, filename))
             elif fileCondition == 'suffix':
-                if os.path.splitext(filename)[1] in suffix or filename[-3:] in suffix:
+                if len([i for i in suffix if i in os.path.splitext(filename)[1] or filename[-3:] in i]) > 0:
                     Filelist.append(os.path.join(home, filename))
                 elif home not in list_jpg_dir:
                     list_jpg_dir.append(home)
@@ -679,19 +679,17 @@ def getZipSubsection(sc, lis):
     return lis_sub_zip
 
 
-def decompressionZIP(dirs, sqlPath):
+def decompressionZIP(dirs, recursion=False):
     """
-        linux压缩包解压
+        linux压缩包解压(需过滤查验和误判数据)
+        默认解压目录下所有的压缩包（解压后生成的压缩包不会处理）
     :param dirs: 扫描目录
     :param sqlPath: sql文件目录
+    :param recursion: 递归解压缩
     """
-    index = 0
-    while True:
-        index += 1
-        if not os.path.isdir(sqlPath):
-            os.system('mkdir ' + sqlPath)
-        zip = get_filelist(dirs, 'zip')
-        for i in zip:
+    zip = get_filelist(dirs, 'zip')
+    for i in zip:
+        if not bool(re.compile(u'chayan|查验|误判|wupan').search(i)):
             new_file_name = i.split('/')[-1]
             old_file_name = i.split('/')[-1]
             for tu in ['(', ')', ' ', '-', '#', ';', '$', '!', '@', '&', '\\', '"']:
@@ -715,18 +713,14 @@ def decompressionZIP(dirs, sqlPath):
                     os.system('mv ' + i + ' ' + new_i)
                     for sub_zip in lis_sub_zip:
                         os.system('cat ' + sub_zip + ' > ' + i + ' && rm ' + sub_zip)
-                    os.system('unzip -O gbk ' + new_i + ' -d ' + newpath + ' && rm ' + new_i)
+                    os.system('unzip -n -O gbk ' + new_i + ' -d ' + newpath + ' && rm ' + new_i)
                 else:
-                    os.system('unzip -O gbk ' + i + ' -d ' + newpath + ' && rm ' + i)
+                    os.system('unzip -n -O gbk ' + i + ' -d ' + newpath + ' && rm ' + i)
             elif filename.endswith('.rar') and ('.part' not in filename):
                 os.system('rar e -o+ -y ' + i + ' -C ' + newpath + ' && rm ' + i)
             os.system('echo ' + i + ' ok')
-            todoList = get_filelist(dirs, fileCondition='sql')
-            for sqldir in todoList:
-                moveFileToDir(sqldir, sqlPath)
-        delDir(dirs)
-        if len(get_filelist(dirs, 'zip')) == 0 or index >= 3:
-            break
+            if recursion:
+                decompressionZIP(newpath, recursion=True)
 
 
 sheng = [cs_id[i] for i in cs_id if i[-4:] == '0000']
@@ -801,27 +795,38 @@ def cj_data_unzip_city(cs, dir_cj):
     dir_cj_cs_yasuo = os.path.join(dir_cj_cs, 'yasuo')
     dir_cj_cs_sql = os.path.join(dir_cj_cs, 'sql')
     dir_cj_cs_todo = os.path.join(dir_cj_cs, 'todo')
+    dir_cj_cs_video = os.path.join(dir_cj_cs, 'todo', 'video')
     dir_cj_cs_zip = os.path.join(dir_cj_cs, 'zip')
     if os.path.isdir(dir_cj_cs_yasuo):
         print('葵花解压手')
-        decompressionZIP(dir_cj_cs_yasuo, dir_cj_cs_sql)
+        decompressionZIP(dir_cj_cs_yasuo)
+        if not os.path.isdir(dir_cj_cs_sql):
+            os.system('mkdir ' + dir_cj_cs_sql)
+        todoList = get_filelist(dir_cj_cs_yasuo, fileCondition='sql')
+        for sqldir in todoList:
+            moveFileToDir(sqldir, dir_cj_cs_sql)
+        delDir(dir_cj_cs_yasuo)
     list_nojpg_file, list_jpg_dir = get_filelist(dir_cj_cs_yasuo, 'suffix', False)
     print('斗转星移')
     for src_cj_cs_yasuo in list_nojpg_file:
         moveFileToDir(src_cj_cs_yasuo, os.path.split(src_cj_cs_yasuo.replace(dir_cj_cs_yasuo, dir_cj_cs_todo))[0])
-    delDir(dir_cj_cs_yasuo)
     print('乾坤大挪移')
     wx_jpgdir_lis = []
     for src_cj_yasuo in list_jpg_dir:
         time_dst_dir = getDate(str(src_cj_yasuo).split('/')[-1])
         if time_dst_dir is not None:
-            mvDirToDir(src_cj_yasuo, os.path.join(dir_cj_cs_zip, time_dst_dir.split('-')[0], time_dst_dir))
+            for home, dirs, files in os.walk(src_cj_yasuo, topdown=False):
+                if home != src_cj_yasuo:
+                    for file in files:
+                        moveFileToDir(file, os.path.join(dir_cj_cs_zip, time_dst_dir.split('-')[0], time_dst_dir))
+                else:
+                    mvDirToDir(src_cj_yasuo, os.path.join(dir_cj_cs_zip, time_dst_dir.split('-')[0], time_dst_dir))
         else:
             wx_jpgdir_lis.append(src_cj_yasuo)
     for wx_jpgdir in wx_jpgdir_lis:
         mvDirToDir(wx_jpgdir, os.path.split(wx_jpgdir.replace(dir_cj_cs_yasuo, dir_cj_cs_todo))[0])
     print('佛山清空脚')
-    delDir(dir_cj_cs_yasuo)
+    delDir(dir_cj_cs)
 
 
 def cj_data_classify_city(dir_zip):
@@ -853,25 +858,19 @@ def cj_data_classify_city(dir_zip):
     for k, v in urllis_dir.items():
         for i in v:
             dir_src = i
+            dir_yasuo = None
             time = [time for time in str(dir_src).split('/') if validate(time)][0]
             if '车检' in dir_src:
                 dir_yasuo = os.path.join(os.getcwd(), 'chejian', k, 'yasuo', time, '')
-                if os.path.isdir(dir_src):
-                    mvDirToDir(dir_src, dir_yasuo)
-                else:
-                    shutil.move(dir_src, dir_yasuo)
             elif '查验' in dir_src:
                 dir_yasuo = os.path.join(os.getcwd(), 'chayan', k, time, '')
-                if os.path.isdir(dir_src):
-                    mvDirToDir(dir_src, dir_yasuo)
-                else:
-                    shutil.move(dir_src, dir_yasuo)
             elif '误判' in dir_src or 'wupan' in dir_src:
                 dir_yasuo = os.path.join(os.getcwd(), 'wupan', k, time, '')
+            if dir_yasuo is not None:
                 if os.path.isdir(dir_src):
                     mvDirToDir(dir_src, dir_yasuo)
                 else:
-                    shutil.move(dir_src, dir_yasuo)
+                    moveFileToDir(dir_src, dir_yasuo)
     delDir(dir_zip)
 
 
@@ -922,8 +921,8 @@ def getDate(time_dst_dir):
     time_t1 = re.search(r'(\d{4}-\d{2}-\d{2})$', time_dst_dir)
     time_t2 = re.search(r'(\d{4}\d{2}\d{2})$', str(time_dst_dir))
     time_t3 = re.search(r'(\d{4}年\d{2}月\d{2}日)$', str(time_dst_dir))
-    if time_t1 and validate(time_t1.group(1), 'zip'):
-        return time_dst_dir
+    if time_t1 and validate(time_t1.group(1)):
+        return time_t1.group(1)
     elif time_t2 and validate(time_t2.group(1)):
         return parse(time_t2.group(1)).strftime('%Y-%m-%d')
     elif time_t3:
@@ -965,21 +964,67 @@ if __name__ == '__main__':
     # cj_data_classify_city(dir_zip)
     print('二、解压各个城市中的压缩文件')
     dir_cj = os.path.join(os.getcwd(), 'chejian')
-    # dir_cj = '/data/data/chejian/chejian'
     for cs in os.listdir(dir_cj):
         cj_data_unzip_city(cs, dir_cj)
+    # print('三、检查')
+    # # 1、清空城市目录中所有空目录和空文件
+    # cs = '九江'
+    # delDir(os.path.join(os.getcwd(), 'chejian', cs))
+    # # 查看脏数据
+    # # dir_cj = os.path.join(os.getcwd(), 'chejian')
+    # # for cs in os.listdir(dir_cj):
+    # zip_dir = os.path.join(os.getcwd(), 'chejian', cs, 'zip')
+    # todo_dir = os.path.join(os.getcwd(), 'chejian', cs, 'todo')
+    # video_dir = os.path.join(os.getcwd(), 'chejian', cs, 'todo', 'video')
+    # if os.path.isdir(zip_dir) and os.path.isdir(todo_dir):
+    #     for i in os.listdir(zip_dir):
+    #         riqi = os.path.join(zip_dir, i)
+    #         for s in os.listdir(riqi):
+    #             for root, dirs, files in os.walk(os.path.join(riqi, s)):
+    #                 if len([i for i in files if i.endswith('.mp4') or i.endswith('.flv')]) > 0:
+    #                     if not os.path.isdir(video_dir):
+    #                         os.makedirs(video_dir)
+    #                     print(root, ' to ', video_dir)
+    #                     mvDirToDir(root, video_dir)
+    #                 elif len(dirs) > 0:
+    #                     list_nojpg_file, list_jpg_dir = get_filelist(root, 'suffix', False)
+    #                     # print('斗转星移')
+    #                     for src_cj_cs_yasuo in list_nojpg_file:
+    #                         print(src_cj_cs_yasuo)
+    #                     #     moveFileToDir(src_cj_cs_yasuo,
+    #                     #                   os.path.split(src_cj_cs_yasuo.replace(dir_cj_cs_yasuo, dir_cj_cs_todo))[0])
+    #                     # print('乾坤大挪移')
+    #                     # wx_jpgdir_lis = []
+    #                     for src_cj_yasuo in list_jpg_dir:
+    #                         time_dst_dir = getDate(str(src_cj_yasuo).split('/')[-1])
+    #                         if time_dst_dir is not None:
+    #                             for home, dirs, files in os.walk(src_cj_yasuo, topdown=False):
+    #                                 print(home)
+                            #         if home != src_cj_yasuo:
+                            #             for file in files:
+                            #                 moveFileToDir(file, src_cj_yasuo)
+                            #         else:
+                            #             mvDirToDir(src_cj_yasuo,
+                            #                        os.path.join(dir_cj_cs_zip, time_dst_dir.split('-')[0], time_dst_dir))
+                            # else:
+                            #     wx_jpgdir_lis.append(src_cj_yasuo)
+                        # for wx_jpgdir in wx_jpgdir_lis:
+                        #     mvDirToDir(wx_jpgdir, os.path.split(wx_jpgdir.replace(dir_cj_cs_yasuo, dir_cj_cs_todo))[0])
+                        # print('佛山清空脚')
+                        # delDir(dir_cj_cs_yasuo)
+                        # print(root)
+
+
     # sqlPath = os.path.join(os.path.abspath(os.path.dirname(os.getcwd())), 'sql', '')
     # os.system('mkdir ' + sqlPath)
     # moveFileToDir(os.getcwd(), sqlPath, 'sql')
-    # print('葵花解压手')
-    # decompressionZIP(os.getcwd(), sqlPath)
     # print('乾坤大挪移')
     # dic = {
     # }
     # for src in dic:
     #     mvDirToDir(src, dic[src])
     # print('佛山清空脚')
-    # delDir(os.path.join(os.getcwd(), 'yasuo'))
+    # delDir(os.path.join(os.getcwd(), 'chejian', '滨州', 'todo'))
     # print('万花写轮眼')
     # Filelist, list_jpg_dir = get_filelist('/data/data/chejian/chejian/安顺/sql', 'suffix')
     # print('------------------输出文件-------------------------------')

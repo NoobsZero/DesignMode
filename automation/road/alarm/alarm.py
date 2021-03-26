@@ -4,21 +4,24 @@
 @Time   :2021/1/20 8:54
 @Author :Chen
 @Software:PyCharm
+http://www.weather.com.cn/alarm/alarm_list.shtml
 """
 import datetime
 import time
 import requests
 
-from tool.baseUtil.getBaseUtil import get_stamp13
+from automation.road.proxyPool import ProxyPool
+from tool.mytimeUtil.dataTime import get_stamp13
 
 if __name__ == '__main__':
     yesterday_time = datetime.datetime.strptime(
         (datetime.datetime.now() + datetime.timedelta(days=-1)).strftime("%Y-%m-%d 00:00:00"), '%Y-%m-%d %H:%M:%S')
     url = 'http://product.weather.com.cn/alarm/grepalarm_cn.php?_=%d' % get_stamp13()
-    reponse = requests.get(url=url)
+    reponse = ProxyPool(url).response
     reponse.encoding = 'utf-8'
-    alarm_url_lis = eval(reponse.text.lstrip('var alarminfo = ').rstrip(';'))['data']
+    alarm_url_lis = eval(reponse.text.lstrip('var alarminfo = ').rstrip(';').replace('null', "'null'"))['data']
     for data in alarm_url_lis:
+        # noinspection PyBroadException
         try:
             datetime_str = datetime.datetime.strptime(str(data[1]).split('-')[1], '%Y%m%d%H%M%S')
             if datetime_str > yesterday_time:
@@ -36,7 +39,7 @@ if __name__ == '__main__':
                     alarm_data['alarmfyzn_bz'] = eval(alarm_data_qi.text.lstrip('var alarmfyzn='))[2]
                     alarm_data['alarmfyzn_fyzn'] = eval(alarm_data_qi.text.lstrip('var alarmfyzn='))[3]
                     alarm_data['alarmfyzn_gif'] = 'http://www.weather.com.cn/m2/i/about/alarmpic/%s.gif' % (
-                                alarm_data['TYPECODE'] + alarm_data['LEVELCODE'])
+                            alarm_data['TYPECODE'] + alarm_data['LEVELCODE'])
                 alarm_data['url'] = data[1]
                 print(alarm_data)
                 requests.post(url='http://192.168.50.75:5001/api/v1/weather/yujing', data=alarm_data)
