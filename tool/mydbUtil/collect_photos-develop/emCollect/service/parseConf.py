@@ -34,6 +34,9 @@ class RawDataBaseInfo:
 
 
 class DataSaveConf:
+    """
+        数据配置信息
+    """
     def __init__(self, confPath):
         bconf = baseTool.BaseConfig().loadConf(confPath)
         print(bconf.__dict__)

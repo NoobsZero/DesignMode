@@ -57,3 +57,11 @@ class JsonConfig:
 
     def getValue(self, keyName):
         return self.objMap[keyName]
+
+
+if __name__ == '__main__':
+    oldjson = JsonConfig.loadConf(r'\\192.168.30.41\0_.算法部\panliuhua\up\路口分割2021-04-26\2-2-2\标注员\test\json\4370.jpg.json')
+    data = oldjson.getValue('objects')[0]
+    # data['lable']
+    # data['polygon']
+

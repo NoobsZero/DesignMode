@@ -15,14 +15,14 @@ import shutil
 
 def parseArgs():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-image_dir', default=r'E:\toos\test\image', help='imageUtil dir')
-    parser.add_argument('-output_dir_1', default=r'E:\toos\test\ok1/',
+    parser.add_argument('-image_dir', default=r'F:\tupian\1/', help='imageUtil dir')
+    parser.add_argument('-output_dir_1', default=r'F:\tupian\mh/',
                         help='output dir')
-    parser.add_argument('-output_dir_2', default=r'E:\toos\test\ok2/',
+    parser.add_argument('-output_dir_2', default=r'F:\tupian\yj/',
                         help='output dir')
-    parser.add_argument('-output_dir_3', default=r'E:\toos\test\ok3/',
+    parser.add_argument('-output_dir_3', default=r'F:\tupian\wj/',
                         help='output dir')
-    parser.add_argument('-copy_dir', default=r'E:\toos\test/',
+    parser.add_argument('-copy_dir', default=r'F:\tupian\test/',
                         help='copy dir')
     parser.add_argument('-image_width', default=960)
     parser.add_argument('-image_height', default=540)
@@ -157,5 +157,5 @@ if __name__ == '__main__':
             cv2.namedWindow("image")
             cv2.imshow("image", img)
             print('\nimages located in: {}'.format(filename))
-            # cv2.setMouseCallback("image", on_EVENT_LBUTTONDOWN)
+            cv2.setMouseCallback("image", on_EVENT_LBUTTONDOWN)
             cv2.waitKey()

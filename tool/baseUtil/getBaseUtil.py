@@ -251,7 +251,7 @@ class MyCity:
         self.readCityName()
 
     def readCityName(self):
-        self.cityMapper = tool.myconfigUtil.JsonConfig.JsonConfig().loadConf(self.cityConfPath).getValue(
+        self.cityMapper = untitled.tool.myconfigUtil.JsonConfig.JsonConfig().loadConf(self.cityConfPath).getValue(
             'cs_id')
 
     def getSheng(self):
@@ -269,7 +269,7 @@ class MyCity:
             try:
                 cityName = self.cityMapper[citycode]
             except KeyError:
-                tool.mylogUtil.baselog.logger.error("未知的citycode：[{}]".format(citycode))
+                untitled.tool.mylogUtil.baselog.logger.error("未知的citycode：[{}]".format(citycode))
         else:
             cityName = getChengshi(citycode, MyCity().getShi(), '市', 'win')
             if cityName is None:

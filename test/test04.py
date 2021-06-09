@@ -3,120 +3,35 @@
 # @Author:Eric
 # @File : test04.py
 # @Software: PyCharm
-import requests
-from chardet import detect
-import pandas as pd
-import urllib.request
-from bs4 import BeautifulSoup, SoupStrainer
-import re
-from lxml import etree
 
-headers = {
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,imageUtil/webp,imageUtil/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-    "Accept-Encoding": "gzip, deflate",
-    "Accept-Language": "zh-CN,zh;q=0.9",
-    "Cache-Control": "max-age=0",
-    "Connection": "keep-alive",
-    "Cookie": "Hm_lvt_9f8bda7a6bb3d1d7a9c7196bfed609b5=1596532129,1597288096,1597305671,1597305767; Hm_lpvt_9f8bda7a6bb3d1d7a9c7196bfed609b5=1597309892",
-    "Host": "www.ccgp.gov.cn",
-    "Upgrade-Insecure-Requests": "1",
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Safari/537.36"
-}
+# 懒汉式
 
 
-def get_url_table(url):
-    reponse = urllib.request.urlopen(url)
-    only_fist_table_tags = SoupStrainer('table',
-                                        attrs={"width": "600", "border": "0", "cellspacing": "1", "bgcolor": "#bfbfbf",
-                                               "style": "text-align:left;"})  # 截取隐藏
-    bs = BeautifulSoup(reponse.read().decode('utf-8'), 'html.parser', parse_only=only_fist_table_tags)
-    lis_str_data = []
-    for item in bs.find_all('td'):
-        lis_str_data.append(item.text)
-    zz_money = lis_str_data[lis_str_data.index('总中标金额') + 1]
-    cglx_money = lis_str_data[lis_str_data.index('采购单位联系方式') + 1]
-    print(zz_money, cglx_money)
+class Singleton(object):
+    __instance = None
 
-
-lis_str = []
-
-
-def for_list(list_x):
-    for x in list_x:
-        if len(x) > 1:
-            for_list(x)
+    def __init__(self):
+        if not self.__instance:
+            self.start = ""
+            print('调用__init__， 实例未创建')
         else:
-            # 过滤所有标签
-            pattern = re.compile("<(.*?)>")
-            sub_str = re.sub(pattern, "", str(x))
-            if (bool(re.compile(u'[\u4e00-\u9fa5]').search(sub_str)) or bool(re.search(r'\d', sub_str))):
-                if bool(re.compile(u'采购|联系|中标|电话|传真|成交').search(sub_str)):
-                    lis_str.append(sub_str)
+            print('调用__init__，实例已经创建过了:', self.__instance)
+
+    @classmethod
+    def get_instance(cls):
+        # 调用get_instance类方法的时候才会生成Singleton实例
+        if not cls.__instance:
+            cls.__instance = Singleton()
+        return cls.__instance
+
+    def setStart(self, start_time):
+        self.start = start_time
 
 
-def get_url_text(url):
-    p_x_list = []
-    reponse = requests.get(url=url)
-    reponse.encoding = 'utf-8'
-    html = etree.HTML(reponse.text)
-    html_data = html.xpath('/html/body/div[2]/div/div[2]/div/div[2]/table/tr')
-    ccgp = {}
-    index = 0
-    for i in html_data:
-        index += 1
-        name = i.xpath('td[1]/text()')
-        data = i.xpath('td[2]/text()')
-        if name != [] and data == []:
-            ccgp[name[0]] = '无'
-        elif name and data != []:
-            ccgp[name[0]] = data[0]
-        if index == 5:
-            name = i.xpath('td[3]/text()')
-            data = i.xpath('td[4]/text()')
-            if name != [] and data == []:
-                ccgp[name[0]] = '无'
-            elif name and data != []:
-                ccgp[name[0]] = data[0]
-    for i in ccgp:
-        print(i, ccgp[i])
-    # reponse = urllib.request.urlopen(url.strip())
-    # only_text_tags = SoupStrainer('div', attrs={"class": "vF_detail_content_container"})
-    # only_text2 = SoupStrainer('table', attrs={"class": "MsoNormalTable", "border": "1"})
-    # p_x_list = BeautifulSoup(reponse.read().decode('utf-8'), 'html.parser', parse_only=only_text_tags)
-    # p_x_list = BeautifulSoup(reponse, 'html.parser')
-    # ss = p_x_list.find_elements_by_xpath('/html/body/div[2]/div/div[2]/div/div[2]/table')
-
-    # for x in p_x_list:
-    # pattern = re.compile("<(.*?)>")
-    # sub_str = re.sub(pattern, "", str(x))
-    # #     print(sub_str.text)
-    # if (bool(re.compile(u'[\u4e00-\u9fa5]').search(str(sub_str))) or bool(
-    #         re.search(r'\d', str(sub_str)))):
-    #     if bool(re.compile(u'采购|联系|中标|电话|传真|成交').search(str(sub_str))):
-    # print(x.text)
-
-
-# //*[@id="detail"]/div[2]/div/div[2]/div/div[2]/table/tbody/tr[2]/td[1]
-# //*[@id="detail"]/div[2]/div/div[2]/div/div[2]/table/tbody/tr[2]/td[2]
-# //*[@id="detail"]/div[2]/div/div[2]/div/div[2]/table/tbody/tr[3]/td[1]
-
-
-# for_list(p_x_list)
-
-
-lis_url_str = []
 if __name__ == '__main__':
-    url = 'http://www.ccgp.gov.cn/cggg/dfgg/zbgg/202012/t20201218_15655860.htm'.strip()
-    get_url_text(url)
-    for i in lis_str:
-        print(i)
-    # lis_url_str.append(dl_name)
-    # lis_url_str.append(dl_numb)
-    # lis_strs.append(lis_url_str)
+    print(Singleton.get_instance().start)
+    print(Singleton.get_instance().setStart('123'))
+    print(Singleton.get_instance().start)
+    print(Singleton.get_instance().start)
+    print(Singleton.get_instance().start)
 
-# lisUrls = []
-# with open('C:/Users/标注/Desktop/test/cleardata/数据集.txt', 'r', encoding='utf-8') as fo:
-#     lisUrls = fo.read().splitlines()
-# test = pd.DataFrame(data=lis_str)
-# file_name = 'C:/Users/标注/Desktop/test/test/01.txt'
-# test.to_string(file_name, encoding='utf-8')

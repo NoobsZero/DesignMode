@@ -181,4 +181,5 @@ def getLisDirTime(zip_url, urllis):
 
 
 if __name__ == '__main__':
-    print(get_time_difference('1614326441000', get_stamp13(), sub='H'))
+    # print(get_time_difference('1614326441000', get_stamp13(), sub='H'))
+    print(get_stamp13Totime(get_stamp13()))

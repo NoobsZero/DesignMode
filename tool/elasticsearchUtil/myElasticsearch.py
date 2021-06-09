@@ -58,6 +58,50 @@ def mysql_connection_em():
     return engine
 
 
+class ElasticSearch:
+    def __init__(self, hosts, port):
+        self.es = Elasticsearch(hosts=hosts, port=port)
+
+    def es_create(self, index, mappings):
+        return self.es.indices.create(index=index, body=mappings, ignore=400)
+
+    def es_delete(self, index):
+        return self.es.indices.delete(index=index, ignore=[400, 404])
+
+    def es_get_indices(self, index):
+        # es.indices.get_alias("*")
+        return self.es.indices.get_alias(index)
+
+    def es_del_indices(self, index):
+        return self.es.indices.delete(index)
+
+    def es_query_by_page(self, index_name, page_count=50, page_num=1):
+        from_page = int(page_count) * (int(page_num) - 1)
+        return self.es.search(index=index_name, size=int(page_count), from_=from_page)
+
+    def es_search(self, index, body, doc_type='_doc'):
+        search = {
+            "query": {
+                "bool": {
+                    "filter": [
+                        {"term": {"id": "4643"}},
+                        {"term": {"infos.category": "0167"}},
+                    ]
+                }
+            }
+        }
+        # result = es.get_source(index='cj_anshun', id='4643', _source=["infos.category", "infos.name"])
+        return self.es.search(index='cj_*', doc_type='_doc', body=search)
+        # # # _search
+        # results = result['hits']['hits']  # es查询出的结果第一页
+        # total = result['hits']['total']  # es查询出的结果总量
+        # scroll_id = result['_scroll_id']  # 游标用于输出es查询出的所有结果
+        # print(results)
+        # print(total)
+        # print(scroll_id)
+        # print(json.dumps(result, indent=2, ensure_ascii=False))
+
+
 def sqlToDf(sql):
     # 显示所有列
     # pandas.set_option('display.max_columns', None)
@@ -68,37 +112,6 @@ def sqlToDf(sql):
     engine = mysql_connection_em()
     pd = pandas.read_sql_query(sql, engine)
     return pd
-
-
-def es_create(es):
-    # 创建index
-    mappings = {
-        "settings": {
-            "index": {
-                "blocks": {
-                    "read_only_allow_delete": "false"
-                }
-            }
-        },
-        "mappings": {
-            "properties": {
-                "id": {
-                    "type": "text"
-                },
-                "riqi": {
-                    "type": "text"
-                }
-            }
-        }
-    }
-    result = es.indices.create(index='cj', body=mappings, ignore=400)
-    return result
-
-
-def es_delete(es, index):
-    # 删除index
-    result = es.indices.delete(index=index, ignore=[400, 404])
-    return result
 
 
 def es_index():
@@ -217,61 +230,12 @@ def test():
 #     return actions
 
 
-def es_search(es):
-    search = {
-        "query": {
-            "bool": {
-                "filter": [
-                    {"term": {"id": "4643"}},
-                    {"term": {"infos.category": "0167"}},
-                ]
-            }
-        }
-    }
-    result = es.search(index='cj_*', doc_type='_doc', body=search)
-    # result = es.get_source(index='cj_anshun', id='4643', _source=["infos.category", "infos.name"])
-    return result
-    # # # _search
-    # results = result['hits']['hits']  # es查询出的结果第一页
-    # total = result['hits']['total']  # es查询出的结果总量
-    # scroll_id = result['_scroll_id']  # 游标用于输出es查询出的所有结果
-    # print(results)
-    # print(total)
-    # print(scroll_id)
-    # print(json.dumps(result, indent=2, ensure_ascii=False))
-
-
-def query_data_by_page(es, index_name, page_count=50, page_num=1):
-    """
-        分页查询
-    Args:
-        es:
-        index_name:
-        page_count:
-        page_num:
-
-    Returns:
-
-    """
-    from_page = int(page_count) * (int(page_num) - 1)
-    data_array = es.search(index=index_name, size=int(page_count), from_=from_page)
-    return data_array
-
-
 if __name__ == '__main__':
     es = Elasticsearch(hosts='192.168.50.100', port='2999')
+    es.cat.segments().create(index='cj_anshun', params=['chejian'])
     # print(es_create(es))
     # result = es_search(es)
-    # source = result['hits']['hits'][0]['_source']['infos']
-    # keyName = 'category'
-    # valueName = '0323'
-    # print([i['name'] for i in source if i[keyName] == valueName][0])
     # es.get_source(index='chejian', id='4643')
-    # start = time.time()
-    # test()
-    # print(info)
     # print(es_delete(es, 'chejian'))
     # 删除索引
-    # es.indices.delete('chejian')
-    # es.indices.get_alias("*")
     # es_create(es)

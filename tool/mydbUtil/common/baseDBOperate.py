@@ -1,5 +1,7 @@
 import os
 import pymysql
+from sqlalchemy import create_engine
+
 from tool.myconfigUtil.JsonConfig import JsonConfig
 from tool.mylogUtil.baselog import logger
 
@@ -98,6 +100,19 @@ class OperateDB:
                                             charset='utf8')
         # self.dbhandle = MySQLdb.connect("192.168.20.115", "root", "em-data-9527", "chejian_refactor", charset='utf8')
         self.cursor = self.dbhandle.cursor()
+
+    def engine_connection(self):
+        maxconnections = 15  # 最大连接数
+        engine = create_engine(
+            f'mysql+pymysql://{self.dbconf.user}:{self.dbconf.passwd}@{self.dbconf.host}:{self.dbconf.port}/{self.dbconf.db}',
+            max_overflow=0,  # 超过连接池大小外最多创建的连接
+            pool_size=maxconnections,  # 连接池大小
+            pool_timeout=30,  # 池中没有线程最多等待的时间，否则报错
+            pool_recycle=-1,  # 多久之后对线程池中的线程进行一次连接的回收(重置)
+            pool_pre_ping=True
+        )
+        # SessionFactory = sessionmaker(bind=engine)
+        return engine
 
     def select(self, sqlstr):
         """
