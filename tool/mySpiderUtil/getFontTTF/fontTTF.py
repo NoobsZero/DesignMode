@@ -26,6 +26,8 @@ headers = {
 def get_cmap(font_text):
     with open('world.ttf', 'wb') as f:
         f.write(font_text)
+    font = TTFont('world.ttf')
+    font.saveXML('world.xml')
     bestcmap = TTFont("world.ttf")['cmap'].getBestCmap()
     newmap = dict()
     for key in bestcmap.keys():
@@ -36,8 +38,9 @@ def get_cmap(font_text):
 
 
 if __name__ == '__main__':
-    content = requests.get('https://b2b.huangye88.com/gongsi/company3056943/', headers=headers).text
+    content = requests.get('https://xiawei518.b2b.huangye88.com/', headers=headers).text
     code_list = re.search("<span class='secret'>(.*?)</span>", content).group(1).replace("&#", "0").split(';')[:-1]
     font_data_after_decode = base64.b64decode(re.search('base64,(.*?)"\)', content).group(1))
     phone_number = "".join([str(get_cmap(font_data_after_decode)[code]) for code in code_list])
+    print(phone_number)
 #     content.replace(web_word, values)

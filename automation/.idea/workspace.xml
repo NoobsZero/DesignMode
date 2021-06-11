@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="a1cd0c93-6b07-4ebc-b65f-7b08c3543ef3" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/../.idea/deployment.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.idea/sshConfigs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.idea/webServers.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/road/image/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/road/image/imageUp.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/road/image/shougouImageUp.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/road/image/test.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../pyLean/dataBase/lean/Ui_MainWindow.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../pyLean/dataBase/lean/test02.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../pyLean/dataBase/lean/test03.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../pyLean/djangoMode/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../pyLean/djangoMode/test.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../test/test08.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../test/test09.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../tool/elasticsearchUtil/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../tool/elasticsearchUtil/myElasticsearch.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../tool/imageUtil/imageFilter.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../tool/mylinuxUtil/suanfa/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../tool/mylinuxUtil/suanfa/testjson.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../tool/mylinuxUtil/suanfa/testxml.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../tool/myvideoUtil/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../tool/myvideoUtil/video.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/road/chinacar/text/bmp.log" beforeDir="false" afterPath="$PROJECT_DIR$/road/chinacar/text/bmp.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/road/chinacar/text/ch01.py" beforeDir="false" afterPath="$PROJECT_DIR$/road/chinacar/text/ch01.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/road/chinacar/text/server.log" beforeDir="false" afterPath="$PROJECT_DIR$/road/chinacar/text/server.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pyLean/dataBase/es/myElasticsearch.py" beforeDir="false" afterPath="$PROJECT_DIR$/../pyLean/dataBase/es/myElasticsearch.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../test/test04.py" beforeDir="false" afterPath="$PROJECT_DIR$/../test/test04.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../tool/baseUtil/getBaseUtil.py" beforeDir="false" afterPath="$PROJECT_DIR$/../tool/baseUtil/getBaseUtil.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../tool/imageUtil/testImage.py" beforeDir="false" afterPath="$PROJECT_DIR$/../tool/imageUtil/testImage.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../tool/myconfigUtil/JsonConfig.py" beforeDir="false" afterPath="$PROJECT_DIR$/../tool/myconfigUtil/JsonConfig.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../tool/mydbUtil/common/baseDBOperate.py" beforeDir="false" afterPath="$PROJECT_DIR$/../tool/mydbUtil/common/baseDBOperate.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../tool/mytimeUtil/dataTime.py" beforeDir="false" afterPath="$PROJECT_DIR$/../tool/mytimeUtil/dataTime.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectId" id="1tQyLxdvSVUYQEaV3QqkcoJxwCV" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="a1cd0c93-6b07-4ebc-b65f-7b08c3543ef3" name="Default Changelist" comment="" />
+      <created>1622715555208</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1622715555208</updated>
+      <workItem from="1622715556714" duration="20000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="2" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="740" y="275" key="FileChooserDialogImpl" timestamp="1622715576535">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="740" y="275" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1622715576535" />
+  </component>
+</project>
