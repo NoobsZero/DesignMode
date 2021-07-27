@@ -10,9 +10,8 @@ import re
 from datetime import datetime
 from dateutil.parser import parse
 import time
-import math
 
-from tool.baseUtil.getBaseUtil import is_number
+from tool.mystrUtil.getStrUtil import is_number
 
 
 def getTime(timestamp=time.localtime(), timeformat="%Y-%m-%d %H:%M:%S"):

@@ -13,12 +13,11 @@ import shutil
 import pymysql
 import sys
 from ast import literal_eval
-import pypinyin
 import requests
+from DBUtils.PooledDB import PooledDB
 from sqlalchemy.exc import IntegrityError
 from tomorrow import threads
 from pymysql import ProgrammingError
-from dbutils.pooled_db import PooledDB
 import pandas
 from sqlalchemy import Column, String, create_engine
 from sqlalchemy.orm import sessionmaker

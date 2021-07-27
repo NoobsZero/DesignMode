@@ -1,5 +1,7 @@
 # -*- coding: UTF-8 -*-
 import smtplib
+from email.mime.application import MIMEApplication
+from email.mime.image import MIMEImage
 from email.mime.text import MIMEText
 from email.header import Header
 
@@ -8,8 +10,8 @@ class mailSend:
     mailServer = ':1001'
     logLevel = 1
 
-    def __init__(self, user, password, timeout=5):
-        self.sender = user
+    def __init__(self, sender, password, timeout=5):
+        self.sender = sender
         self.password = password
         self.smtpObj = smtplib.SMTP_SSL()
         self.setSmtpObj(timeout, self.logLevel)
@@ -77,13 +79,16 @@ def getContent(cityName, version, url):
 
 
 if __name__ == '__main__':
+    # 发件人的地址
     user = 'Afakerchen@em-data.com.cn'
+    # 此处是我们刚刚在邮箱中获取的授权码
     password = "asdf1234/"
-    cityNames = ["青岛"]
     subject = "城市提测"
+    # 邮件接受方邮箱地址
     receivers = ['Afakerchen@em-data.com.cn']
     # receivers = ['lipengfei@em-data.com.cn', 'xuepengbo@em-data.com.cn', 'huahaijun@em-data.com.cn',
     #              'yonghao@em-data.com.cn', 'sunchao@em-data.com.cn']
+    cityNames = ["青岛"]
     url = "http://192.168.20.115:7002/buildpackage/chejian-refactor/Release_5.1.46.tar.gz"
     htmlUrl = '<a href="{}">下载</a>'.format(url)
     content = getContent(",".join(cityNames), version="Release_5.1.46",
@@ -94,6 +99,21 @@ if __name__ == '__main__':
         ms = mailSend(user, password).login()
         ms.setReceivers(receivers)
         ms.sendMail(subject=subject, content=content)
+
+        # 添加图片附件
+        imageFile = 'C:\\Users\\pacer\\Desktop\\img\\1.png'
+        imageApart = MIMEImage(open(imageFile, 'rb').read(), imageFile.split('.')[-1])
+        imageApart.add_header('Content-Disposition', 'attachment', filename=imageFile)
+
+        # 添加pdf附件
+        pdfFile = 'C:\\Users\\pacer\\Desktop\\img\\1.pdf'
+        pdfApart = MIMEApplication(open(pdfFile, 'rb').read())
+        pdfApart.add_header('Content-Disposition', 'attachment', filename=pdfFile)
+
+        # 添加压缩文件附件
+        zipFile = 'C:\\Users\\pacer\\Desktop\\img\\1.zip'
+        zipApart = MIMEApplication(open(zipFile, 'rb').read())
+        zipApart.add_header('Content-Disposition', 'attachment', filename=zipFile)
     except Exception as ex:
         print("发送失败")
         print(ex)

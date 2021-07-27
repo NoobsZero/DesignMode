@@ -3,7 +3,7 @@
   <component name="WebServers">
     <option name="servers">
       <webServer id="c4901aae-fb6b-499e-88d6-67c627729866" name="192.168.50.75">
-        <fileTransfer rootFolder="/media/ubuntu/5591da6a-473f-4528-ba60-f14db431794c/违法原始数据备份20200422" accessType="SFTP" host="192.168.50.75" port="22" sshConfigId="9cc3bd8a-bf79-48ee-b6ed-bb105d0af073" sshConfig="ubuntu@192.168.50.75:22 password">
+        <fileTransfer rootFolder="/home/ubuntu/workspace" accessType="SFTP" host="192.168.50.75" port="22" sshConfigId="9cc3bd8a-bf79-48ee-b6ed-bb105d0af073" sshConfig="ubuntu@192.168.50.75:22 password">
           <advancedOptions>
             <advancedOptions controlEncoding="UTF8" dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>

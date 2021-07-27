@@ -8,32 +8,43 @@
 """
 import os
 import pickle
-import time
-
 from selenium import webdriver
 from selenium.webdriver.support.wait import WebDriverWait
+from pynput.keyboard import Controller, Key, Listener
 
 brower = webdriver.Chrome()
+
+
+def on_release(key):
+    if key == Key.esc:
+        return False
+
+
+def start_listen():
+    """开始监听"""
+    with Listener(on_release=on_release) as listener:
+        listener.join()
 
 
 def getCookies(fileName, url, loginURL):
     # get login cookies
     WebDriverWait(brower, 10)
     brower.get(loginURL)
+    kb = Controller()
+    kb.press(Key.space)
+    start_listen()
     while True:
         print("Please login in {}!".format(url))
-        time.sleep(3)
         # if login in successfully, url  jump to www.taobao.com
-        while brower.current_url == url:
-            tbCookies = brower.get_cookies()
-            brower.quit()
-            cookies = {}
-            for item in tbCookies:
-                cookies[item['name']] = item['value']
-            outputPath = open(fileName+'.pickle', 'wb')
-            pickle.dump(cookies, outputPath)
-            outputPath.close()
-            return cookies
+        tbCookies = brower.get_cookies()
+        cookies = {}
+        for item in tbCookies:
+            cookies[item['name']] = item['value']
+        brower.quit()
+        outputPath = open(fileName+'.pickle', 'wb')
+        pickle.dump(cookies, outputPath)
+        outputPath.close()
+        return cookies
 
 
 def readCookies(fileName, url=None, loginURL=None):

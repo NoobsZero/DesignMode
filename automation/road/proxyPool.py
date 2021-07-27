@@ -51,7 +51,6 @@ class ProxyMiddleware(object):
         proxies = {proxy_ip.split("://")[0]: proxy_ip.split("://")[1]}
         conn = requests.get(self.target_url, proxies=proxies, verify=False)
         res = conn.status_code
-        print(res)
         if res == 200:
             self.proxy = proxy_ip
         else:
@@ -68,5 +67,3 @@ if __name__ == '__main__':
     # url = 'http://product.weather.com.cn/alarm/grepalarm_cn.php?_=%d' % get_stamp13()
     # print(url)
     print(ProxyPool('https://poi.mapbar.com/baoding/GA0/').response)
-
-

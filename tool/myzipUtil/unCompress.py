@@ -15,7 +15,7 @@ import rarfile
 import gzip
 
 from tool.baseUtil.getBaseUtil import BaseProgressBar
-from tool.dirUtil.getDirUtil import checkDir
+from tool.dirUtil.getDirUtil import checkDir, get_filelist, delDir, getZipSubsection
 from tool.mylogUtil.baselog import logger
 
 
@@ -154,6 +154,7 @@ def parseSourceFile(filePath, targetPath, specifiedDirectory=None):
     """
         解压源文件
     Args:
+        specifiedDirectory: 指定解压路径（包含判断）
         filePath: 原始路径
         targetPath: 目标路径
 
@@ -181,7 +182,6 @@ def parseSourceFile(filePath, targetPath, specifiedDirectory=None):
     else:
         print("文件格式无法进行处理,[%s]{}", strTail, filePath)
         return False, None
-
     fileName = os.path.basename(filePath)
     fendNameLi = fileName.split("V.")
     decodeVersion = ""
@@ -191,6 +191,51 @@ def parseSourceFile(filePath, targetPath, specifiedDirectory=None):
             decodeVersion = tmpVersion.split(".")[0]
     un_compress_obj.decodeVersion = decodeVersion
     return True, un_compress_obj
+
+
+def decompressionZIP(dirs):
+    """
+        linux压缩包解压
+            注意：由于目录中存在一些特殊字符全部替换成'_'，避免后续操作带来不便（可以使用path_remake解决后续也需使用）
+    :param dirs: 扫描目录
+    """
+    index = 0
+    while True:
+        index += 1
+        zip = get_filelist(dirs, 'zip')
+        for i in zip:
+            new_file_name = i.split('/')[-1]
+            old_file_name = i.split('/')[-1]
+            for tu in ['(', ')', ' ', '-', '#', ';', '$', '!', '@', '&', '\\', '"']:
+                new_file_name = new_file_name.replace(tu, '_')
+            new_file_name = i.replace(old_file_name, new_file_name)
+            if i != new_file_name:
+                os.system('mv ' + "'" + i + "'" + ' ' + new_file_name)
+            i = new_file_name
+            pathname, filename = os.path.split(i)
+            newpath = os.path.join(pathname, filename.split('.')[0], '')
+            if not os.path.isdir(newpath):
+                os.system('mkdir ' + newpath)
+            os.system('echo ' + i + ' ... ...')
+            if filename.endswith('.gz') or filename.endswith('tar'):
+                os.system('tar -xf ' + i + ' -C ' + newpath + ' && rm ' + i)
+            elif filename.endswith('zip'):
+                lis_sub_zip = getZipSubsection(filename, zip)
+                if len(lis_sub_zip) > 0:
+                    i_pathname, i_filename = os.path.split(i)
+                    new_i = os.path.join(i_pathname[0], 'all_' + i_filename[-1])
+                    os.system('mv ' + i + ' ' + new_i)
+                    for sub_zip in lis_sub_zip:
+                        os.system('cat ' + sub_zip + ' > ' + i + ' && rm ' + sub_zip)
+                    os.system('unzip -O gbk ' + new_i + ' -d ' + newpath + ' && rm ' + new_i)
+                else:
+                    os.system('unzip -O gbk ' + i + ' -d ' + newpath + ' && rm ' + i)
+            elif filename.endswith('.rar') and ('.part' not in filename):
+                os.system('rar e -o+ -y ' + i + ' -C ' + newpath + ' && rm ' + i)
+            os.system('echo ' + i + ' ok')
+        delDir(dirs)
+        if len(get_filelist(dirs, 'zip')) == 0 or index >= 3:
+            break
 
 
 if __name__ == '__main__':

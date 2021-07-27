@@ -9,7 +9,7 @@ import os
 
 import paramiko
 
-from tool.baseUtil.getBaseUtil import project_root_path
+from tool.dirUtil.getDirUtil import project_root_path
 from tool.myconfigUtil.JsonConfig import JsonConfig
 
 

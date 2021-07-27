@@ -8,6 +8,7 @@
 """
 import os
 import shutil
+import sys
 import threading
 import time
 import jieba
@@ -21,6 +22,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 
 import tool
 from tool.baseUtil.getBaseUtil import BaseProgressBar, MyCity
+from tool.dirUtil.getDirUtil import project_root_path
 from tool.dirUtil.mvi import cs_id
 from tool.myconfigUtil.JsonConfig import JsonConfig
 from tool.mylinuxUtil.getMessgae import LoginLinux
@@ -84,8 +86,9 @@ def zip_cj_move(linuxPaths, zipFileName, types):
 def zip_cj_tmp(zipFile):
     client = LoginLinux()
     linuxPaths = tool.myconfigUtil.JsonConfig.JsonConfig().loadConf(
-        os.path.join(tool.baseUtil.getBaseUtil.project_root_path('untitled'),
+        os.path.join(project_root_path('untitled'),
                      r'automation\meteorological\chejian\conf\linuxpath.conf.json'))
+
     unzip_command = 'unzip -n -O gbk {} -d {}'.format(
         linuxPaths.getValue('cj_tmp') + '/' + os.path.basename(zipFile),
         linuxPaths.getValue('cj_tmp'))
@@ -93,12 +96,15 @@ def zip_cj_tmp(zipFile):
     reLis = client.exec(unzip_command)
     rm_lis = []
     for i in reLis:
-        if ('tar.gz' in i and '误判' not in os.path.basename(zipFile)) or (
+        if ('tar.gz' in i and '误判' not in os.path.basename(zipFile) and 'emData' in i) or (
                 'tar.gz' in i and '误判' in os.path.basename(zipFile) and 'WP' in i):
-            mv_command = 'mv ' + linuxPaths.getValue('cj_tmp') + '/' + str(i).replace('extracting:',
-                                                                                      '').strip() + ' ' + linuxPaths.getValue(
-                'cj_todo')
+            print(linuxPaths.getValue('cj_tmp'))
+            print(str(i).replace('extracting:', '').strip())
+            print(linuxPaths.getValue('cj_todo'))
+            mv_command = 'mv ' + linuxPaths.getValue('cj_tmp') + '/' + str(i).replace('extracting:', '').strip() + ' ' \
+                         + linuxPaths.getValue('cj_todo')
             print(mv_command)
+            sys.exit(1)
             client.exec(mv_command)
         elif 'creating:' in i:
             rm_lis.append(i)
@@ -138,10 +144,10 @@ def zip_cj_tmp(zipFile):
 
 
 def file_winToLinux(zipFile, count):
-    linuxFile = os.path.join(r'\\192.168.90.10\vehicle_data\tmp', os.path.basename(zipFile))
+    linuxFile = os.path.join(r'\\192.168.90.10\vehicle_data\tool\temporary', os.path.basename(zipFile))
     print(linuxFile)
     threading.Thread(target=shutil.move,
-                     args=(zipFile, r'\\192.168.90.10\vehicle_data\tmp')).start()
+                     args=(zipFile, r'\\192.168.90.10\vehicle_data\tool\temporary')).start()
     time.sleep(1)
     handle = BaseProgressBar(count)
     tqdm_re = handle.tqdmBarFlush(linuxFile)
@@ -149,11 +155,18 @@ def file_winToLinux(zipFile, count):
 
 
 def file_download(key, chejian_dic):
-    action = ActionChains(browser).move_to_element(chejian_dic[key]['data-link'])
-    action.context_click(chejian_dic[key]['data-link']).perform()  # 右键点击该元素
-    element = browser.find_element_by_class_name('action-4')
-    ActionChains(browser).move_to_element(element).click().perform()
-    time.sleep(2)
+    clickUp = True
+    while clickUp:
+        upStartLen = len(os.listdir(download))
+        action = ActionChains(browser).move_to_element(chejian_dic[key]['data-link'])
+        action.context_click(chejian_dic[key]['data-link']).perform()  # 右键点击该元素
+        time.sleep(1)
+        element = browser.find_element_by_class_name('action-4')
+        ActionChains(browser).move_to_element(element).click().perform()
+        time.sleep(2)
+        upEndLen = len(os.listdir(download))
+        if upStartLen != upEndLen:
+            clickUp = False
     for filename in os.listdir(download):
         tqdm_re = False
         if key in filename and filename.endswith('.crdownload'):
@@ -161,8 +174,8 @@ def file_download(key, chejian_dic):
             filepath = os.path.join(download, filename)
             print('https://pan.em-data.com.cn/index.php/apps/files/?dir=%s' % chejian_dic[key]['data-path'])
             tqdm_re = handle.tqdmBarFlush(filepath)
-            zipFile = os.path.join(download, key + '.zip')
             time.sleep(5)
+            zipFile = [os.path.join(download, filename).rstrip('.crdownload') for filename in os.listdir(download) if key in filename][0]
         if tqdm_re and os.path.isfile(zipFile):
             # 移动
             if file_winToLinux(zipFile, chejian_dic[key]['data-size']):
@@ -184,7 +197,7 @@ def getTableLis(browser, datapath='/道路交通本部'):
     for link in browser.find_element_by_id('fileList').find_elements_by_tag_name('tr'):
         datafile = link.get_attribute('data-file')
         if re.findall(r'车检|查验|误判', datafile) and not re.findall(
-                r'东营车检|8000|日志|自动化|7000|.mp4|程序|.rar|.exe|.wmv|违法|镜像|视频|示例',
+                r'东营车检|8000|日志|自动化|7000|.mp4|程序|.rar|.exe|.wmv|违法|镜像|视频|示例|log',
                 datafile):
             chejian_dic[datafile] = {'data-type': link.get_attribute('data-type'),
                                      'data-size': link.get_attribute('data-size'),
@@ -212,36 +225,36 @@ def getTableLis(browser, datapath='/道路交通本部'):
 def test():
     client = LoginLinux()
     linuxPaths = tool.myconfigUtil.JsonConfig.JsonConfig().loadConf(
-        os.path.join(tool.baseUtil.getBaseUtil.project_root_path('untitled'),
+        os.path.join(project_root_path('untitled'),
                      r'automation\meteorological\chejian\conf\linuxpath.conf.json'))
-    print(getTime())
-    client.exec('cd ' + linuxPaths.getValue('cj_collect') + ' && sh work.sh')
+    # print(getTime())
+    # client.exec('cd ' + linuxPaths.getValue('cj_collect') + ' && sh work.sh')
     for i in client.exec('cat ' + linuxPaths.getValue('cj_log'))[-5:-1]:
         print(i)
-    print('ok', getTime())
+    # print('ok', getTime())
 
 
 if __name__ == '__main__':
-    test()
-# download = r"G:\chejian"
-# proxy_data = [
-#     '--proxy=%s' % '61.135.185.152:80',  # 设置的代理ip
-#     '--proxy-type=http',  # 代理类型
-#     '--ignore-ssl-errors=true',  # 忽略https错误
-# ]
-# prefs = {"profile.managed_default_content_settings.images": 2}
-# capo = DesiredCapabilities.PHANTOMJS
-# options = webdriver.ChromeOptions()
-# options.add_argument('--headless')
-# options.add_experimental_option("prefs", {"download.default_directory": download})
-# options.add_argument('--ignore-certificate-errors')
-# # taskkill /F /IM java.exe
-# # taskkill /F /IM chromedriver.exe
-# browser = webdriver.Chrome(desired_capabilities=capo, service_args=proxy_data, chrome_options=options)
-# browser.get('https://pan.em-data.com.cn/index.php/login')
-# browser.find_element_by_id("user").send_keys("Afakerchen@em-data.com.cn")
-# browser.find_element_by_id("password").send_keys("asdf1234/")
-# browser.find_element_by_id("submit-form").click()
-# new_lis = []
-# getTableLis(browser)
-# browser.close()
+    # test()
+    download = r"F:\chejian"
+    proxy_data = [
+        '--proxy=%s' % '61.135.185.152:80',  # 设置的代理ip
+        '--proxy-type=http',  # 代理类型
+        '--ignore-ssl-errors=true',  # 忽略https错误
+    ]
+    prefs = {"profile.managed_default_content_settings.images": 2}
+    capo = DesiredCapabilities.PHANTOMJS
+    options = webdriver.ChromeOptions()
+    # options.add_argument('--headless')
+    options.add_experimental_option("prefs", {"download.default_directory": download})
+    options.add_argument('--ignore-certificate-errors')
+    # taskkill /F /IM java.exe
+    # taskkill /F /IM chromedriver.exe
+    browser = webdriver.Chrome(desired_capabilities=capo, service_args=proxy_data, chrome_options=options)
+    browser.get('https://pan.em-data.com.cn/index.php/login')
+    browser.find_element_by_id("user").send_keys("Afakerchen@em-data.com.cn")
+    browser.find_element_by_id("password").send_keys("asdf1234?")
+    browser.find_element_by_id("submit-form").click()
+    new_lis = []
+    getTableLis(browser)
+    # browser.close()

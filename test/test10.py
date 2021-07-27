@@ -10,8 +10,9 @@ import base64
 import os
 import time
 from urllib.parse import quote
-
+import tkinter
 from fontTools.ttLib import TTFont
+
 
 def test02():
     code_list = '&#x8810c;&#x88110;&#x8810e;&#x88111;&#x8810d;&#x88111;&#x8810b;&#x88111;&#x8810b;&#x88110;&#x88110;'
@@ -40,7 +41,3 @@ def test01():
     start_url = ["https://so.huangye88.com/?kw=%sE&page=%d" % (quote('维修'), i)
                  for i in range(begin_page, end_page+1) if begin_page != end_page]
     print(start_url)
-
-
-if __name__ == '__main__':
-    test01()

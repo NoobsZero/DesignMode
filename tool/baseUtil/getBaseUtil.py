@@ -18,18 +18,7 @@ import tool.myconfigUtil.JsonConfig
 import tool.mylogUtil.baselog
 import tqdm
 
-
-def project_root_path(project_name=None):
-    """
-        获取当前项目根路径
-        :param project_name:
-        :return: 根路径
-    """
-    PROJECT_NAME = 'untitled' if project_name is None else project_name
-    project_path = os.path.abspath(os.path.dirname(__file__))
-    root_path = project_path[:project_path.find("{}\\".format(PROJECT_NAME)) + len("{}\\".format(PROJECT_NAME))]
-    # print('当前项目名称：{}\r\n当前项目根路径：{}'.format(PROJECT_NAME, root_path))
-    return root_path
+from tool.mystrUtil.getStrUtil import is_number
 
 
 def typeof(variate):
@@ -121,58 +110,6 @@ def generateUUID():
     return str(uuid.uuid4()).replace("-", "")
 
 
-def getPinyin(value=""):
-    """
-    获取中文拼音
-    Args:
-        value: 中文
-
-    Returns: 拼音
-
-    """
-    ret = ""
-    if len(value) > 0:
-        ret = xpinyin.Pinyin().get_pinyin(value, "")
-    return ret
-
-
-def is_all_chinese(sirs):
-    """
-        判断是否是中文
-    :param sirs:
-    :return:
-    """
-    for _char in sirs:
-        if not '\u4e00' <= _char <= '\u9fa5':
-            return False
-    return True
-
-
-def is_number(s):
-    """
-        判断字符串是否为数字
-    Args:
-        s: 字符串
-
-    Returns:bool
-
-    """
-    try:
-        float(s)
-        return True
-    except ValueError:
-        pass
-
-    try:
-        import unicodedata
-        unicodedata.numeric(s)
-        return True
-    except (TypeError, ValueError):
-        pass
-
-    return False
-
-
 class BaseProgressBar:
     """
         进度条
@@ -251,7 +188,7 @@ class MyCity:
         self.readCityName()
 
     def readCityName(self):
-        self.cityMapper = untitled.tool.myconfigUtil.JsonConfig.JsonConfig().loadConf(self.cityConfPath).getValue(
+        self.cityMapper = tool.myconfigUtil.JsonConfig.JsonConfig().loadConf(self.cityConfPath).getValue(
             'cs_id')
 
     def getSheng(self):
@@ -265,11 +202,11 @@ class MyCity:
 
     def getCityName(self, citycode):
         cityName = None
-        if is_number(citycode):
+        if is_number():
             try:
                 cityName = self.cityMapper[citycode]
             except KeyError:
-                untitled.tool.mylogUtil.baselog.logger.error("未知的citycode：[{}]".format(citycode))
+                tool.mylogUtil.baselog.logger.error("未知的citycode：[{}]".format(citycode))
         else:
             cityName = getChengshi(citycode, MyCity().getShi(), '市', 'win')
             if cityName is None:

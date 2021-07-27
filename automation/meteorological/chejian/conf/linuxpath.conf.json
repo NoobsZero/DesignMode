@@ -1,9 +1,9 @@
 {
-    "cj_tmp": "/empool/vehicle_data/tmp",
-    "cj_todo": "/empool/vehicle_data/todo",
-    "cj_collect": "/empool/vehicle_data/collect_photos-develop",
-    "cj_log": "/empool/vehicle_data/collect_photos-develop/log/base-log.log",
-    "cj_other": "/empool/vehicle_data/rawdata/other",
-    "cj_wupan": "/empool/vehicle_data/rawdata/wupan",
+    "cj_tmp": "/empool/vehicle_data/tool/temporary",
+    "cj_todo": "/empool/vehicle_data/tool/todo",
+    "cj_collect": "/empool/vehicle_data/tool/collect_photos-develop",
+    "cj_log": "/empool/vehicle_data/tool/collect_photos-develop/log/base-log.log",
+    "cj_other": "/empool/vehicle_data/tool/rawdata/other",
+    "cj_wupan": "/empool/vehicle_data/tool/rawdata/wupan",
     "cj_beifen": "/empool/vehicle_data/原始备份"
 }

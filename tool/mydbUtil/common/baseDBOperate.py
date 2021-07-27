@@ -7,6 +7,7 @@ from tool.mylogUtil.baselog import logger
 
 
 class DbConfigure:
+
     def __init__(self, configPath):
         """
         DbConfigure类
@@ -104,7 +105,7 @@ class OperateDB:
     def engine_connection(self):
         maxconnections = 15  # 最大连接数
         engine = create_engine(
-            f'mysql+pymysql://{self.dbconf.user}:{self.dbconf.passwd}@{self.dbconf.host}:{self.dbconf.port}/{self.dbconf.db}',
+            f'mysql+mysqlconnector://{self.dbconf.user}:{self.dbconf.passwd}@{self.dbconf.host}:{self.dbconf.port}/{self.dbconf.db}',
             max_overflow=0,  # 超过连接池大小外最多创建的连接
             pool_size=maxconnections,  # 连接池大小
             pool_timeout=30,  # 池中没有线程最多等待的时间，否则报错

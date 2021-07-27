@@ -8,6 +8,8 @@
 """
 import json
 import os
+from datetime import datetime
+
 from PIL import Image, ImageDraw
 import sys
 import traceback
@@ -100,8 +102,9 @@ def mask2box(mask):
 def polygons_to_mask(img_shape, polygons):
     mask = np.zeros(img_shape, dtype=np.uint8)
     mask = Image.fromarray(mask)
-    xy = list(map(tuple, polygons))
-    ImageDraw.Draw(mask).polygon(xy=xy, outline=1, fill=1)
+    if len(polygons):
+        xy = list(map(tuple, polygons))
+        ImageDraw.Draw(mask).polygon(xy=xy, outline=1, fill=1)
     mask = np.array(mask, dtype=bool)
     return mask
 
@@ -129,14 +132,16 @@ def get_stamp13(datetime_obj=None):
     return int(date_stamp)
 
 
-labels = {'banmaxian': [1, '斑马线'], 'tingzhixian': [2, '停止线'], 'zhixing': [3, '直行'], 'zuozhuan': [4, '左转'],
-          'youzhuan': [5, '右转'], 'zhixingzuozhuan': [6, '直行加左转'], 'zhixingyouzhuan': [7, '直行加右转'],
-          'zuozhuandiaotou': [8, '左转加掉头'], 'shixian': [9, '车道虚线'], 'xuxian': [10, '车道实线'],
-          'xiaoche': [11, '小车'], 'dache': [12, '大车'], 'xingren': [13, '行人'], 'daizhuanqu': [14, '待转区'],
-          'huangxian': [15, '黄线'], 'zhanyongchedao': [16, '占用车道'], 'bus_road': [17, '公交车道'],
-          'zhalan': [18, '栅栏'], 'zhixingdiaotou': [19, '直行掉头'], 'daoliuxian': [20, '导流线'],
-          'fanxiangdaoxiangxian': [21, '反向导向线'], 'other': [22, '其他'], 'zuozhuanyouzhuanzhixing': [23, '左转右转直行'],
-          'zuozhuanyouzhuan': [24, '左转右转']}
+# labels = {'banmaxian': [1, '斑马线'], 'tingzhixian': [2, '停止线'], 'zhixing': [3, '直行'], 'zuozhuan': [4, '左转'],
+#           'youzhuan': [5, '右转'], 'zhixingzuozhuan': [6, '直行加左转'], 'zhixingyouzhuan': [7, '直行加右转'],
+#           'zuozhuandiaotou': [8, '左转加掉头'], 'shixian': [9, '车道虚线'], 'xuxian': [10, '车道实线'],
+#           'xiaoche': [11, '小车'], 'dache': [12, '大车'], 'xingren': [13, '行人'], 'daizhuanqu': [14, '待转区'],
+#           'huangxian': [15, '黄线'], 'zhanyongchedao': [16, '占用车道'], 'bus_road': [17, '公交车道'],
+#           'zhalan': [18, '栅栏'], 'zhixingdiaotou': [19, '直行掉头'], 'daoliuxian': [20, '导流线'],
+#           'fanxiangdaoxiangxian': [21, '反向导向线'], 'other': [22, '其他'], 'zuozhuanyouzhuanzhixing': [23, '左转右转直行'],
+#           'zuozhuanyouzhuan': [24, '左转右转']}
+
+labels = {'cellphone': [1, 'cellphone'], 'people': [2, 'people'], 'Sticker': [3, 'Sticker']}
 categoriesKeys = ['id', 'name', 'supercategory']
 
 
@@ -153,26 +158,30 @@ def images(im, imagesIdex, addr):
     return dict(zip(imagesKeys, imagesValues))
 
 
-annotationsKeys = ['id', 'image_id', 'category_id', 'segmentation', 'area', 'bbox', 'iscrowd']
-
-
-def annotations(annotationsId, imagesIndex, categoriesId, polygon, bbox):
-    annotationsValues = [annotationsId, imagesIndex, categoriesId, polygon, '', bbox, 0]
-    return dict(zip(annotationsKeys, annotationsValues))
+def annotations(annotationsId, imagesIndex, categoriesId, polygon=None, bbox=None):
+    if bbox is None and polygon is None:
+        annotationsValues = [annotationsId, imagesIndex, categoriesId, '', 0]
+        return dict(zip(['id', 'image_id', 'category_id', 'area', 'iscrowd'], annotationsValues))
+    else:
+        annotationsValues = [annotationsId, imagesIndex, categoriesId, polygon, '', bbox, 0]
+        return dict(
+            zip(['id', 'image_id', 'category_id', 'segmentation', 'area', 'bbox', 'iscrowd'], annotationsValues))
 
 
 def toPolygons(polygon):
     polygons = []
-    for po in polygon:
-        polygons.append(po[0])
-        polygons.append(po[1])
+    if len(polygon):
+        for po in polygon:
+            polygons.append(po[0])
+            polygons.append(po[1])
     return polygons
 
 
 if __name__ == '__main__':
-    json_path = '/old_disk/data/suanfa/panliuhua/up/路口分割2021-04-26/2-2-2/标注员/test/json'
-    img_path = '/old_disk/data/suanfa/panliuhua/up/路口分割2021-04-26/2-2-2/标注员/test/img'
-    local_json_txt = '/old_disk/data/suanfa/panliuhua/up/路口分割2021-04-26/2-2-2/标注员/test/test_20210513.json'
+    json_path = r'F:\chejian\img\file\src\json'
+    img_path = r'F:\chejian\img\file\src\mark'
+    # local_json_txt = '/old_disk/data/suanfa/panliuhua/up/路口分割2021-04-26/2-2-2/标注员/test/test_20210513.json'
+    local_json_txt = r'F:\chejian\img\file\src\test_20210702.json'
     annotationsId = 1
     categoriesList, imagesList, annotationsList = [], [], []
     for key in labels:
@@ -187,8 +196,12 @@ if __name__ == '__main__':
                 imagesList.append(images(im, imagesId, imagePath.lstrip('/old_disk/data/suanfa/')))
                 for data in oldjson.getValue('objects'):
                     categoriesId = labels[data['label']][0]
-                    annotationsList.append(annotations(annotationsId, imagesId, categoriesId, [toPolygons(data['polygon'])],
-                                                       mask2box(polygons_to_mask([im.height, im.width], data['polygon']))))
+                    if 'polygons' in data:
+                        polygon = data['polygon']
+                        annotationsList.append(annotations(annotationsId, imagesId, categoriesId, [toPolygons(polygon)],
+                                                           mask2box(polygons_to_mask([im.height, im.width], polygon))))
+                    else:
+                        annotationsList.append(annotations(annotationsId, imagesId, categoriesId))
                     annotationsId += 1
             except FileNotFoundError as e:
                 print(e)

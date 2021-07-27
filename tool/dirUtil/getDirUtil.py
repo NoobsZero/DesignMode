@@ -1,10 +1,25 @@
 # -*- encoding:utf-8 -*-
 # coding=utf-8
+import fnmatch
+import glob
 import os
 import shutil
 import tempfile
 
 from tool.mylogUtil.baselog import logger
+
+
+def project_root_path(project_name=None):
+    """
+        获取当前项目根路径
+        :param project_name:
+        :return: 根路径
+    """
+    PROJECT_NAME = 'untitled' if project_name is None else project_name
+    project_path = os.path.abspath(os.path.dirname(__file__))
+    root_path = project_path[:project_path.find("{}\\".format(PROJECT_NAME)) + len("{}\\".format(PROJECT_NAME))]
+    # print('当前项目名称：{}\r\n当前项目根路径：{}'.format(PROJECT_NAME, root_path))
+    return root_path
 
 
 def checkDir(targetPath):
@@ -174,52 +189,27 @@ def path_remake(path):
     return path.replace(' ', '\ ').replace('(', '\(').replace(')', '\)')
 
 
-def decompressionZIP(dirs):
+def dir_matches(matches: list = None):
     """
-        linux压缩包解压
-            注意：由于目录中存在一些特殊字符全部替换成'_'，避免后续操作带来不便（可以使用path_remake解决后续也需使用）
-    :param dirs: 扫描目录
+        匹配以点（。）开头的文件的情况; 像当前目录中的文件或基于Unix的系统上的隐藏文件，请使用os.walk下面的解决方案
+    Args:
+        matches:list
+
+    Returns:
+
     """
-    index = 0
-    while True:
-        index += 1
-        zip = get_filelist(dirs, 'zip')
-        for i in zip:
-            new_file_name = i.split('/')[-1]
-            old_file_name = i.split('/')[-1]
-            for tu in ['(', ')', ' ', '-', '#', ';', '$', '!', '@', '&', '\\', '"']:
-                new_file_name = new_file_name.replace(tu, '_')
-            new_file_name = i.replace(old_file_name, new_file_name)
-            if i != new_file_name:
-                os.system('mv ' + "'" + i + "'" + ' ' + new_file_name)
-            i = new_file_name
-            pathname, filename = os.path.split(i)
-            newpath = os.path.join(pathname, filename.split('.')[0], '')
-            if not os.path.isdir(newpath):
-                os.system('mkdir ' + newpath)
-            os.system('echo ' + i + ' ... ...')
-            if filename.endswith('.gz') or filename.endswith('tar'):
-                os.system('tar -xf ' + i + ' -C ' + newpath + ' && rm ' + i)
-            elif filename.endswith('zip'):
-                lis_sub_zip = getZipSubsection(filename, zip)
-                if len(lis_sub_zip) > 0:
-                    i_pathname, i_filename = os.path.split(i)
-                    new_i = os.path.join(i_pathname[0], 'all_' + i_filename[-1])
-                    os.system('mv ' + i + ' ' + new_i)
-                    for sub_zip in lis_sub_zip:
-                        os.system('cat ' + sub_zip + ' > ' + i + ' && rm ' + sub_zip)
-                    os.system('unzip -O gbk ' + new_i + ' -d ' + newpath + ' && rm ' + new_i)
-                else:
-                    os.system('unzip -O gbk ' + i + ' -d ' + newpath + ' && rm ' + i)
-            elif filename.endswith('.rar') and ('.part' not in filename):
-                os.system('rar e -o+ -y ' + i + ' -C ' + newpath + ' && rm ' + i)
-            os.system('echo ' + i + ' ok')
-        delDir(dirs)
-        if len(get_filelist(dirs, 'zip')) == 0 or index >= 3:
-            break
+    if matches is None:
+        matches = []
+    for root, dirnames, filenames in os.walk('src'):
+        for filename in fnmatch.filter(filenames, '*.c'):
+            matches.append(os.path.join(root, filename))
+    return matches
 
 
 if __name__ == '__main__':
+    # 递归匹配后缀jp、pn文件
+    for locationDir in glob.glob('F:\chejian\**\*.[jp][pn]g', recursive=True):
+        print(locationDir)
     # print('葵花解压手')
     # sqlPath = os.path.join(os.path.abspath(os.path.dirname(os.getcwd())),'sql','')
     # decompressionZIP(os.getcwd(),sqlPath)
@@ -227,11 +217,11 @@ if __name__ == '__main__':
     # root_dst_dir={}
     # for root_src_dir in root_dst_dir:
     #     mvFileToDir(root_src_dir, root_dst_dir[root_src_dir])
-    print('佛山清空脚')
-    delDir(os.getcwd())
-    print('万花写轮眼')
-    dic = get_filelist(os.getcwd(), 'if')
-    print('------------------输出文件-------------------------------')
-    for i in dic:
-        print(i)
-    print('------------------------------------------------------------')
+    # print('佛山清空脚')
+    # delDir(os.getcwd())
+    # print('万花写轮眼')
+    # dic = get_filelist(os.getcwd(), 'if')
+    # print('------------------输出文件-------------------------------')
+    # for i in dic:
+    #     print(i)
+    # print('------------------------------------------------------------')

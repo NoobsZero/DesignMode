@@ -233,11 +233,13 @@ import time, os
     那么event.wait()便不再阻塞
 '''
 event = threading.Event()
+
+
 def lighter():
     count = 0
     event.set()         #初始者为绿灯
     while True:
-        if 5 < count <=10:
+        if 5 < count <= 10:
             event.clear()  #红灯，清除标志位
             print("\33[41;lmred light is on...\033[0m]")
         elif count > 10:
@@ -265,7 +267,7 @@ def car(name):
 light = threading.Thread(target=lighter,)
 light.start()
 
-car = threading.Thread(target=car,args=('MINT',))
+car = threading.Thread(target=car, args=('MINT',))
 car.start()
 endTime = time.time()
 # print('用时：',endTime-startTime)
