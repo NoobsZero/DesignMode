@@ -9,7 +9,7 @@ import sys
 import traceback
 import json
 
-from tool.mylogUtil.baselog import logger
+from emCollect.common.baselog import logger
 
 
 class ReadConfigure:

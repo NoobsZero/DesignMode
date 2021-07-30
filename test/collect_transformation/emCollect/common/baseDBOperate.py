@@ -8,14 +8,12 @@
 """
 import os
 import pymysql
-from sqlalchemy import create_engine
-
-from tool.myconfigUtil.JsonConfig import JsonConfig
-from tool.mylogUtil.baselog import logger
+from .baseConfig import BaseConfig
+from .baselog import logger
 
 
 class DbConfigure:
-    def __init__(self, configPath):
+    def __init__(self, configPath='./conf/db.conf.json'):
         """
         DbConfigure类
             读取数据库配置文件
@@ -28,7 +26,7 @@ class DbConfigure:
         self.passwd = "root"
         self.db = "test"
 
-        self.objMap = JsonConfig().loadConf(configPath).objMap
+        self.objMap = BaseConfig().loadConf(configPath).objMap
         self.InitFromConfigure(self.objMap)
 
     def getSource(self):
@@ -109,19 +107,6 @@ class OperateDB:
         # self.dbhandle = MySQLdb.connect("192.168.20.115", "root", "em-data-9527", "chejian_refactor", charset='utf8')
         self.cursor = self.dbhandle.cursor()
 
-    def engine_connection(self):
-        maxconnections = 15  # 最大连接数
-        engine = create_engine(
-            f'mysql+mysqlconnector://{self.dbconf.user}:{self.dbconf.passwd}@{self.dbconf.host}:{self.dbconf.port}/{self.dbconf.db}',
-            max_overflow=0,  # 超过连接池大小外最多创建的连接
-            pool_size=maxconnections,  # 连接池大小
-            pool_timeout=30,  # 池中没有线程最多等待的时间，否则报错
-            pool_recycle=-1,  # 多久之后对线程池中的线程进行一次连接的回收(重置)
-            pool_pre_ping=True
-        )
-        # SessionFactory = sessionmaker(bind=engine)
-        return engine
-
     def select(self, sqlstr):
         """
             查询数据
@@ -186,7 +171,6 @@ class OperateDB:
             valueList: 数据列表
             keyList: 字段列表
             table: 表名
-
         Returns:boolean
 
         """

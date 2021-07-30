@@ -632,7 +632,7 @@ def get_filelist(dir, fileCondition='', topdown=True):
         for filename in files:
             # 文件名列表，包含完整路径
             if fileCondition == 'zip':
-                if filename.endswith('.rar') or filename.endswith('.gz') or filename.endswith('.tar') or \
+                if filename.endswith(('.rar', '.gz', '.tar')) or \
                         os.path.splitext(filename)[-1].endswith('.z', 0, 2) and (
                         'sql' not in filename):
                     Filelist.append(os.path.join(home, filename))
