@@ -71,7 +71,6 @@ if __name__ == '__main__':
 
     files = sorted(Filelist)
     # files = [os.path.join(g_args.image_dir, filename) for filename in files]
-
     if os.path.exists(g_args.output_dir) == False:
         os.mkdir(g_args.output_dir)
     for filename in tqdm(files):

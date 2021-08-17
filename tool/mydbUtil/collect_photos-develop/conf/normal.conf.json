@@ -1,5 +1,0 @@
-{
-    "basePath": "/empool/vehicle_data/rawdata",
-    "photoDir":"photos",
-    "nginxRoot":"/empool/vehicle_data"
-}

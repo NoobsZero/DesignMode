@@ -1,6 +1,0 @@
-{
-    "dbHost": "192.168.50.100",
-    "dbName": "emTestDataCollect",
-    "dbPass": "EmDataMysql2020###",
-    "dbPort": "3306"
-}

@@ -13,12 +13,48 @@ import uuid
 from abc import abstractmethod
 
 import jieba
+import jwt
 import xpinyin
 import tool.myconfigUtil.JsonConfig
 import tool.mylogUtil.baselog
 import tqdm
 
+from tool.dirUtil.getDirUtil import project_root_path
 from tool.mystrUtil.getStrUtil import is_number
+
+
+def get_token():
+    # payload
+    token_dict = {'iat': time.time(),  # 时间戳
+                  'name': 'lowman'  # 自定义的参数
+                  }
+    """payload 中一些固定参数名称的意义, 同时可以在payload中自定义参数"""
+
+    # headers
+    headers = {
+        'alg': "HS256",  # 声明所使用的算法
+    }
+
+    """headers 中一些固定参数名称的意义"""
+
+    # 调用jwt库,生成json web token
+    jwt_token = jwt.encode(token_dict,  # payload, 有效载体
+                           "zhananbudanchou1234678",  # 进行加密签名的密钥
+                           algorithm="HS256",  # 指明签名算法方式, 默认也是HS256
+                           headers=headers  # json web token 数据结构包含两部分, payload(有效载体), headers(标头)
+                           ).decode('ascii')  # python3 编码后得到 bytes, 再进行解码(指明解码的格式), 得到一个str
+    return jwt_token
+
+
+def get_untoken(jwt_token):
+    # 将上面生成的 jwt 进行解析认证
+    data = None
+    try:
+        data = jwt.decode(jwt_token, "zhananbudanchou1234678", algorithms=['HS256'])
+    except Exception as e:
+        print(e)
+    # 解析出来的就是 payload 内的数据
+    print(data)
 
 
 def typeof(variate):
@@ -245,7 +281,13 @@ def getCslisdir(zip_url, urlLis=None, fileType='dir'):
 
 
 if __name__ == '__main__':
-    count = 8888888
-    handle = BaseProgressBar(count)
-    for i in range(count):
-        handle.progressBarFlush(i)
+    # count = 8888888
+    # handle = BaseProgressBar(count)
+    # for i in range(count):
+    #     handle.progressBarFlush(i)
+    from secrets import token_bytes
+    from base64 import b64encode
+    print(b64encode(token_bytes(32)).decode())
+    # jwt_token = get_token()
+    # print(jwt_token)
+    # print(get_untoken(jwt_token))

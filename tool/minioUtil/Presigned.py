@@ -18,7 +18,9 @@ class Presigned:
     def presigned_get_object(self):
         # 预先获得的对象名称的获取对象URL，将在2天后过期
         try:
-            print(minioClient.presigned_get_object('dataset', 'libin/上海路口配置/8d2e287bf25b4a2f9c7da6cdc6f735f3+冀DS913L+1223+8d2e287bf25b4a2f9c7da6cdc6f735f3++0+@4154@@@2020-12-02=14=24=00+a0+1.jpg', expires=timedelta(days=7)))
+            print(minioClient.presigned_get_object('dataset',
+                                                   'libin/上海路口配置/8d2e287bf25b4a2f9c7da6cdc6f735f3+冀DS913L+1223+8d2e287bf25b4a2f9c7da6cdc6f735f3++0+@4154@@@2020-12-02=14=24=00+a0+1.jpg',
+                                                   expires=timedelta(days=7)))
             print("Sussess")
         # 由于内部预定位确实会获得存储桶位置，因此仍然可能出现响应错误
         except InvalidResponseError as err:
@@ -41,4 +43,10 @@ class Presigned:
 
 
 if __name__ == '__main__':
+    # G:\minio>mc policy set download myminio/test/
+    # Access permission for `myminio/test/` is set to `download`
+    #
+    # G:\minio>mc policy set public myminio/test/
+    # Access permission for `myminio/test/` is set to `public`
+    # http://192.168.41.69:9000/test/1.jpg
     Presigned().presigned_get_object()

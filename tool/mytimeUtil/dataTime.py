@@ -99,17 +99,20 @@ def getDate(time_dst_dir):
     time_t1 = re.search(r'(\d{4}-\d{2}-\d{2})$', time_dst_dir)
     time_t2 = re.search(r'(\d{4}\d{2}\d{2})$', str(time_dst_dir))
     time_t3 = re.search(r'(\d{4}年\d{2}月\d{2}日)$', str(time_dst_dir))
+    time_t4 = re.search(r'^(\d{2}/\d{2}/\d{4})', str(time_dst_dir))
     if time_t1:
         return time_t1.group(1)
     elif time_t2 and validate(time_t2.group(1)):
         return parse(time_t2.group(1)).strftime('%Y-%m-%d')
     elif time_t3:
         return parse(re.sub(r'\D', "", time_t3.group(1))).strftime('%Y-%m-%d')
+    elif time_t4:
+        return parse(time_t4.group(1)).strftime('%Y-%m-%d')
     else:
         return None
 
 
-def get_time_difference(start_stamp, end_stamp=get_stamp13(), sub='s'):
+def get_time_difference(start_stamp, end_stamp=None, sub='s'):
     """
         获取时间差
     Args:
@@ -120,6 +123,8 @@ def get_time_difference(start_stamp, end_stamp=get_stamp13(), sub='s'):
     Returns: int
 
     """
+    if end_stamp is None:
+        end_stamp = get_stamp13()
     if is_number(start_stamp) and is_number(end_stamp):
         if len(str(start_stamp)) == 13:
             start_stamp = get_stamp13Totime(start_stamp)
@@ -181,4 +186,6 @@ def getLisDirTime(zip_url, urllis):
 
 if __name__ == '__main__':
     # print(get_time_difference('1614326441000', get_stamp13(), sub='H'))
-    print(get_stamp13Totime(get_stamp13()))
+    # print(get_stamp13Totime(get_stamp13()))
+    time_dst_dir = '12/17/2020 14:30:43'
+    print(getDate(time_dst_dir))

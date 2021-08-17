@@ -30,6 +30,19 @@ def preStart(tmpDir):
     return True
 
 
+def zip_garcode(dir):
+    for temp_name in os.listdir(dir):
+        name = os.path.join(dir, temp_name)
+        try:
+            new_name = name.replace(temp_name, temp_name.encode('cp437').decode('gbk'))
+            os.rename(name, new_name)
+            name = new_name
+        except:
+            pass
+        if os.path.isdir(name):
+            zip_garcode(name)
+
+
 class Uncompress:
     def __init__(self, targetPath):
         self.fd = None
@@ -246,7 +259,7 @@ if __name__ == '__main__':
         if dirname.endswith(".zip") and os.path.isfile(downloadFile):
             # PLUS
             res, unCompressObj = parseSourceFile(filePath=downloadFile,
-                                                 targetPath=specifiedDir, specifiedDirectory='/CONUS/MergedReflectivityQC/')
+                                                 targetPath=specifiedDir,
+                                                 specifiedDirectory='/CONUS/MergedReflectivityQC/')
             if res:
                 unCompressObj.start()
-

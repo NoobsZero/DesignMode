@@ -10,5 +10,4 @@
 from minio import Minio
 
 # warnings.filterwarnings('ignore')
-minioClient = Minio("192.168.50.75:9000", access_key="minio", secret_key="minioadmin", secure=False)
-
+minioClient = Minio("192.168.41.69:8000", access_key="Afakerchen@em-data.com.cn", secret_key="asdf1234?", secure=False)

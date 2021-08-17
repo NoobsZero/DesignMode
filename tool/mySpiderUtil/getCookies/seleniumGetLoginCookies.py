@@ -60,6 +60,7 @@ if __name__ == '__main__':
     fileName = 'huangye88'
     url = 'https://www.huangye88.com'
     loginURL = 'https://my.huangye88.com/login.html'
+    # 登录后esc退出，并返回对应Cookies
     tbCookies = readCookies(fileName, url, loginURL)
     print(tbCookies)
     # brower.get(loginURL)
